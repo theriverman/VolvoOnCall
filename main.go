@@ -47,11 +47,6 @@ func NewApplication() *cli.App {
 			}
 			return nil
 		},
-		Action: func(c *cli.Context) error {
-			// remove this action block if you want to show the help when the
-			// binary gets executed without any arguments
-			return nil
-		},
 		Commands: []*cli.Command{
 			// your custom application commands can be added here
 			// see command `greet` below for a demonstration

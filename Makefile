@@ -1,7 +1,7 @@
 # GENERAL
-AppName := My CLI Application's Name
-BINARY_NAME := MY-CLI-APPLICATION
-COPYRIGHT_TEXT := MY-CUSTOM-COPYRIGHT-TEXT | All Rights Reserved 2021 - $(shell date '+%Y')
+AppName := VolvoOnCall
+BINARY_NAME := voc
+COPYRIGHT_TEXT := Copyright 2022 - $(shell date '+%Y') Kristof Daja. All rights reserved. This work is licensed under the terms of the MIT license. For a copy, see <https://opensource.org/licenses/MIT>.
 BUILD_TIME := $(shell date '+%c')
 
 # Configure OS-specific binary suffix
@@ -83,3 +83,8 @@ create-tar:
 	@echo "Adding new binaries to a tar.gz archive in ./dist"
 	@tar -czvf ./$(BINARY_NAME).tar.gz -C ./dist .
 	@mv ./$(BINARY_NAME).tar.gz ./dist/
+
+# Special Targets
+build-c-library-linux-x86-64:
+	@echo "Building C library for Linux X86_64"
+#	TO BE ADDED

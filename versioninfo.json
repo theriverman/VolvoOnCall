@@ -13,13 +13,13 @@
         "FileSubType": "00"
     },
     "StringFileInfo": {
-        "Comments": "Your custom comments added to the file",
-        "CompanyName": "YOUR COMPANY NAME",
-        "FileDescription": "winter-socks5",
-        "InternalName": "the-internal-product-name",
+        "Comments": "Volvo On Call application for desktop",
+        "CompanyName": "github.com/theriverman",
+        "FileDescription": "VolvoOnCall",
+        "InternalName": "VolvoOnCall",
         "LegalTrademarks": "MIT License",
-        "OriginalFilename": "the-original-file-name.exe",
-        "ProductName": "YOUR PRODUCT'S NAME",
+        "OriginalFilename": "voc.exe",
+        "ProductName": "Volvo On Call",
         "SpecialBuild": ""
     },
     "VarFileInfo": {

@@ -1,5 +1,15 @@
-# Go CLI Project
-A template repositry for creating unified CLI applications in Go.
+# VolvoOnCall
+Library and CLI application written in Go to interact with the Volvo Cars (Volvo On Call) services.
+
+This project was inspired by [molobrakos/volvooncall](https://github.com/molobrakos/volvooncall), and it aims to maintain a certain level of compatibility with it API and configuration wise.
+
+# Installation
+Go to [Releases](https://github.com/theriverman/VolvoOnCall/releases) and download the latest version.
+
+Alternatively, you can install it from source by executing the following command:
+```bash
+go install github.com/theriverman/VolvoOnCall
+```
 
 # Introduction
 This template implies the following conditions:
