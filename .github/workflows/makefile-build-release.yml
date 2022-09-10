@@ -1,0 +1,39 @@
+name: Makefile - Build and Release
+
+on:
+  push:
+    tags:
+      - "*.*.*"  # Tags containing NO semantic versioning will not trigger this workflow
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17  # consider setting this to your minimum supported go version
+
+    - name: Build the binary output for all supported targets
+      run: make build-all
+
+    - name: GH Release Artefacts
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+          ./dist/MY-CLI-APPLICATION-darwin-amd64
+          ./dist/MY-CLI-APPLICATION-darwin-arm64
+          ./dist/MY-CLI-APPLICATION-linux-386
+          ./dist/MY-CLI-APPLICATION-linux-amd64
+          ./dist/MY-CLI-APPLICATION-linux-arm
+          ./dist/MY-CLI-APPLICATION-linux-arm64
+          ./dist/MY-CLI-APPLICATION-windows-386.exe
+          ./dist/MY-CLI-APPLICATION-windows-amd64.exe
