@@ -29,11 +29,11 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
-          ./dist/MY-CLI-APPLICATION-darwin-amd64
-          ./dist/MY-CLI-APPLICATION-darwin-arm64
-          ./dist/MY-CLI-APPLICATION-linux-386
-          ./dist/MY-CLI-APPLICATION-linux-amd64
-          ./dist/MY-CLI-APPLICATION-linux-arm
-          ./dist/MY-CLI-APPLICATION-linux-arm64
-          ./dist/MY-CLI-APPLICATION-windows-386.exe
-          ./dist/MY-CLI-APPLICATION-windows-amd64.exe
+          ./dist/voc-darwin-amd64
+          ./dist/voc-darwin-arm64
+          ./dist/voc-linux-386
+          ./dist/voc-linux-amd64
+          ./dist/voc-linux-arm
+          ./dist/voc-linux-arm64
+          ./dist/voc-windows-386.exe
+          ./dist/voc-windows-amd64.exe
