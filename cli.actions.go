@@ -7,19 +7,41 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"runtime"
 
 	"github.com/urfave/cli/v2"
 )
 
-func actionGreet(c *cli.Context) error {
-	if len(greetNameValue) > 0 {
-		greetNameValue = ", " + greetNameValue
+func actionRegister(c *cli.Context) error {
+	homeDirPath, err := os.UserHomeDir()
+	if err != nil {
+		return err
 	}
-	fmt.Printf("Hello%s\n", greetNameValue)
-	if greetAskMeValue {
-		fmt.Println("How are you?")
-	}
+	defaultConfPath := filepath.Join(homeDirPath, ".voc.conf")
+	Config.Username = username
+	Config.Password = password
+	return Config.WriteToFile(defaultConfPath)
+}
+
+func actionListCars(c *cli.Context) error {
+	return nil
+}
+
+func actionStatus(c *cli.Context) error {
+	return nil
+}
+
+func actionTrips(c *cli.Context) error {
+	return nil
+}
+
+func actionLock(c *cli.Context) error {
+	return nil
+}
+
+func actionUnlock(c *cli.Context) error {
 	return nil
 }
 
