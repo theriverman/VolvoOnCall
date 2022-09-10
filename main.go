@@ -58,7 +58,7 @@ func NewApplication() *cli.App {
 					// add logging here
 					return err
 				}
-				fmt.Printf("Config: %+v\n", Config)
+				// fmt.Printf("Config: %+v\n", Config)  // TODO: THIS CONTAINS SENSITIVE DATA
 			} else if errors.Is(err, os.ErrNotExist) {
 				// add verbose logging here stating that the default config file does not exist
 				fmt.Println("$HOME/.voc.conf was not found")
@@ -106,6 +106,23 @@ func NewApplication() *cli.App {
 			},
 
 			// heater [start/stop]
+			{
+				Name:  "heater",
+				Usage: "Start/Stop the car's heater/climate",
+				Flags: []cli.Flag{},
+				Subcommands: []*cli.Command{
+					{
+						Name:   "start",
+						Usage:  "Start the car's heater",
+						Action: startHeater,
+					},
+					{
+						Name:   "stop",
+						Usage:  "Stop  the car's heater",
+						Action: stopHeater,
+					},
+				},
+			},
 
 			// engine [start/stop]
 
@@ -116,7 +133,7 @@ func NewApplication() *cli.App {
 			// mgtt
 			{
 				Name:   "register",
-				Usage:  "Store your VOC username and password in a file at your $HOME folder",
+				Usage:  "Save your VOC username and password in a file at your $HOME folder",
 				Action: actionRegister,
 				Flags: []cli.Flag{
 					&cli.StringFlag{

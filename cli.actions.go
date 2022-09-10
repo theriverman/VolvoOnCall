@@ -45,6 +45,14 @@ func actionUnlock(c *cli.Context) error {
 	return nil
 }
 
+func startHeater(c *cli.Context) error {
+	return nil
+}
+
+func stopHeater(c *cli.Context) error {
+	return nil
+}
+
 func actionVersion(c *cli.Context) error {
 	fmt.Println(AppName + ":")
 	fmt.Printf("  Version: %s\n", AppSemVersion)
