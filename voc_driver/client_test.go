@@ -17,13 +17,43 @@ func TestClient_Initialise(t *testing.T) {
 	username := os.Getenv("username")
 	password := os.Getenv("password")
 
-	c := Client{}
-	c.Initialise()
-	c.Authenticate(username, password)
+	client := Client{}
+	client.Initialise()
+	client.Authenticate(username, password)
 
-	accounts, err := c.CustomerAccounts.Get()
+	accounts, err := client.CustomerAccounts.GetAccount()
 	if err != nil {
 		t.Errorf("%v\n", err)
 	}
 	t.Logf("Response: %+v\n", accounts)
+
+	accountVehicleRelations := []VehicleAccountRelation{}
+	for _, relationId := range accounts.GetAccountVehicleRelations() {
+		vehicleAccRel, err := client.VehicleAccountRelation.GetById(relationId)
+		if err != nil {
+			t.Errorf("%v\n", err)
+			continue
+		}
+		accountVehicleRelations = append(accountVehicleRelations, *vehicleAccRel)
+	}
+
+	vehicles := []Vehicle{}
+	for _, avr := range accountVehicleRelations {
+		vehicle, err := client.Vehicles.GetVehicleByVIN(avr.VehicleID)
+		if err != nil {
+			t.Errorf("%v\n", err)
+			continue
+		}
+		vehicles = append(vehicles, *vehicle)
+	}
+
+	t.Logf("My Vehicles:\n")
+	for _, vehicle := range vehicles {
+		attributes, err := vehicle.GetAttributes()
+		if err != nil {
+			t.Errorf("%v\n", err)
+			continue
+		}
+		t.Logf("  * %s (%s)\n", vehicle.VehicleID, attributes.RegistrationNumber)
+	}
 }

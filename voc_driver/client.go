@@ -23,20 +23,9 @@ type Client struct {
 	Request *RequestService
 
 	// Volvo Services
-	CustomerAccounts *CustomerAccountsService
-	// Auth      *AuthService
-	// Epic      *EpicService
-	// Issue     *IssueService
-	// Milestone *MilestoneService
-	// Project   *ProjectService
-	// Resolver  *ResolverService
-	// Stats     *StatsService
-	// Task      *TaskService
-	// UserStory *UserStoryService
-	// User      *UserService
-	// Webhook   *WebhookService
-	// Wiki      *WikiService
-
+	CustomerAccounts       *CustomerAccountsService
+	Vehicles               *VehiclesService
+	VehicleAccountRelation *VehicleAccountRelationService
 }
 
 func (c *Client) Initialise() error {
@@ -70,18 +59,8 @@ func (c *Client) Initialise() error {
 	// Bootstrapping Services
 	c.Request = &RequestService{c}
 	c.CustomerAccounts = &CustomerAccountsService{c, "customeraccounts"}
-	// c.Auth = &AuthService{c, 0, "auth"}
-	// c.Epic = &EpicService{c, 0, "epics"}
-	// c.Issue = &IssueService{c, 0, "issues"}
-	// c.Milestone = &MilestoneService{c, 0, "milestones"}
-	// c.Project = &ProjectService{client: c, Endpoint: "projects"}
-	// c.Resolver = &ResolverService{c, 0, "resolver"}
-	// c.Stats = &StatsService{c, 0, "stats"}
-	// c.Task = &TaskService{c, 0, "tasks"}
-	// c.UserStory = &UserStoryService{c, 0, "userstories"}
-	// c.User = &UserService{c, 0, "users"}
-	// c.Webhook = &WebhookService{c, 0, "webhooks", "webhooklogs"}
-	// c.Wiki = &WikiService{c, 0, "wiki"}
+	c.Vehicles = &VehiclesService{c, "vehicles"}
+	c.VehicleAccountRelation = &VehicleAccountRelationService{c, "vehicle-account-relations"}
 
 	c.isInitialised = true
 	return nil
@@ -95,11 +74,6 @@ func (c *Client) loadHeaders(request *http.Request) {
 	}
 }
 
-// func (c *Client) setToken() {
-// 	c.Headers.Del("Authorization") // avoid header duplication
-// 	c.Headers.Add("Authorization", c.TokenType+" "+c.Token)
-// }
-
 // LoadExternalHeaders loads a map of header key/value pairs permemently into `Client.Headers`
 func (c *Client) LoadExternalHeaders(headers map[string]string) {
 	for k, v := range headers {
@@ -112,12 +86,12 @@ func (c *Client) Authenticate(username, password string) {
 }
 
 // MakeURL accepts an Endpoint URL and returns a compiled absolute URL
-
-// For example:
-//   - If the given endpoint URLs are [epics, attachments]
-//   - If the BaseURL is https://api.taiga.io
-//   - It returns https://api.taiga.io/api/v1/epics/attachments
-//   - Suffixes are appended to the URL joined by a slash (/)
+//
+//	For example:
+//	- If the given endpoint URLs are [epics, attachments]
+//	- If the BaseURL is https://api.taiga.io
+//	- It returns https://api.taiga.io/api/v1/epics/attachments
+//	- Suffixes are appended to the URL joined by a slash (/)
 func (c *Client) MakeURL(EndpointParts ...string) string {
 	return c.apiUrl + "/" + strings.Join(EndpointParts, "/")
 }
