@@ -1,6 +1,16 @@
 package vocdriver
 
-import "log"
+import (
+	"fmt"
+	"log"
+	"time"
+)
+
+var ServiceTypeMap map[string]string = map[string]string{
+	"RDL":   "Lock Vehicle",
+	"RDU":   "Unlock Vehicle",
+	"RHBLF": "Blink Lights",
+}
 
 type VehiclesService struct {
 	client   *Client
@@ -13,6 +23,7 @@ func (v *VehiclesService) GetVehicleByVIN(vin string) (vehicle *Vehicle, err err
 		return nil, err
 	}
 	vehicle.client = v.client
+	err = vehicle.RetrieveHyperlinks()
 	return
 }
 
@@ -21,6 +32,7 @@ func (v *VehiclesService) GetVehicleByHyperlink(url string) (vehicle *Vehicle, e
 		return nil, err
 	}
 	vehicle.client = v.client
+	err = vehicle.RetrieveHyperlinks()
 	return
 }
 
@@ -60,8 +72,94 @@ func (v *VehiclesService) GetVehicleTripsByVIN(vin string) (trips *VehicleTrips,
 	return
 }
 
+// GetServiceStatus retrieves the current status of an async operation (typically an action sent to a vehicle)
+func (v *VehiclesService) GetServiceStatus(url string) (vss *VehicleServiceStatus, err error) {
+	fmt.Println("hello from GetServiceStatus")
+	if _, err = v.client.Request.Get(url, &vss); err != nil {
+		return nil, err
+	}
+	vss.client = v.client
+	return
+}
+
+func (v *VehiclesService) EvaluateServiceStatusAuto(vss *VehicleServiceStatus) (ok bool, err error) {
+	timeoutSeconds := 30
+	if ServiceTypeMap[vss.ServiceType] == "Unlock Vehicle" {
+		vehicle, err := v.client.Vehicles.GetVehicleByVIN(vss.VehicleID)
+		if err != nil {
+			return false, fmt.Errorf("failed to retrieve vehicle details for %s", vss.VehicleID)
+		}
+		timeoutSeconds = vehicle.Attributes.UnlockTimeFrame
+		log.Printf("value of timeoutSeconds increased to %d to match the vehicle's unlockTimeFrame value", timeoutSeconds)
+	}
+	return v.EvaluateServiceStatus(vss, timeoutSeconds)
+}
+
+func (v *VehiclesService) EvaluateServiceStatus(vss *VehicleServiceStatus, timeoutSeconds int) (ok bool, err error) {
+	c := 0
+	fmt.Println("ENTERING the loop, i guess")
+loop:
+	fmt.Println("Cycle: ", c)
+	if c == timeoutSeconds {
+		return false, fmt.Errorf("request timeout (%ds)", timeoutSeconds)
+	}
+	if err = vss.Refresh(); err != nil {
+		return
+	}
+	switch vss.Status {
+	case "Started":
+		time.Sleep(1 * time.Second)
+		c++
+		goto loop
+	case "MessageDelivered":
+		time.Sleep(1 * time.Second)
+		c++
+		goto loop
+	case "Successful":
+		return ok, nil
+	case "Failed":
+		return false, fmt.Errorf("request (%s) failed: %s", ServiceTypeMap[vss.ServiceType], vss.FailureReason)
+	}
+	return false, fmt.Errorf("request (%s) failed with status (%s): %s", ServiceTypeMap[vss.ServiceType], vss.Status, vss.FailureReason)
+}
+
+// BlinkLights blinks the lights on the car without sounding the horn
+//
+// This API requires sending the client's position. You have two options:
+//   - Share your position by passing a valid *Position struct.
+//   - Pass in `nil` and the actual own position of the car will be sent used
+func (v *VehiclesService) BlinkLights(vin string, position *Position) (status *VehicleServiceStatus, err error) {
+	url := v.client.MakeURL(v.Endpoint, vin, "honk_blink", "lights")
+	if position == nil {
+		position = &Position{}
+		vehiclePosition, err := v.GetVehiclePositionByVIN(vin)
+		if err != nil {
+			return nil, err
+		}
+		position.Longitude = vehiclePosition.Position.Longitude
+		position.Latitude = vehiclePosition.Position.Latitude
+	}
+	payload := map[string]float64{
+		"clientAccuracy":  0.0,
+		"clientLatitude":  position.Latitude,
+		"clientLongitude": position.Longitude,
+	}
+	if _, err = v.client.Request.Post(url, payload, &status); err != nil {
+		return nil, err
+	}
+	return
+}
+
 func (v *VehiclesService) LockVehicle(vin string) (status *VehicleServiceStatus, err error) {
 	url := v.client.MakeURL(v.Endpoint, vin, "lock")
+	if _, err = v.client.Request.Post(url, nil, &status); err != nil {
+		return nil, err
+	}
+	return
+}
+
+func (v *VehiclesService) UnlockVehicle(vin string) (status *VehicleServiceStatus, err error) {
+	url := v.client.MakeURL(v.Endpoint, vin, "unlock")
 	if _, err = v.client.Request.Post(url, nil, &status); err != nil {
 		return nil, err
 	}
@@ -82,30 +180,52 @@ func (v *VehiclesService) RetrieveServiceStatus(vin, customerServiceId string) (
 type Vehicle struct {
 	Attributes                       *VehicleAttributes
 	Status                           *VehicleStatus
-	VehicleAccountRelations          *AccountVehicleRelation
+	VehicleAccountRelations          []AccountVehicleRelation
 	HyperlinkAttributes              string   `json:"attributes"`              // url
 	HyperlinkStatus                  string   `json:"status"`                  // url
 	HyperlinkVehicleAccountRelations []string `json:"vehicleAccountRelations"` // url
 	VehicleID                        string   `json:"vehicleId"`               // vin
-	client                           *Client  // added for interface simplification
+	vehicleAccountRelationsRetrieved bool
+	client                           *Client // added for interface simplification
 }
 
 func (v *Vehicle) RetrieveHyperlinks() (err error) {
 	if v.Attributes == nil {
+		if v.Attributes, err = v.client.Vehicles.GetVehicleAttributesByVIN(v.VehicleID); err != nil {
+			return
+		}
 	}
 	if v.Status == nil {
+		if v.Status, err = v.client.Vehicles.GetVehicleStatusByVIN(v.VehicleID); err != nil {
+			return
+		}
 	}
-	if v.VehicleAccountRelations == nil {
+	if !v.vehicleAccountRelationsRetrieved {
+		for _, url := range v.HyperlinkVehicleAccountRelations {
+			relation, err := v.client.AccountVehicleRelation.GetByHyperlink(url)
+			if err != nil {
+				return err
+			}
+			v.VehicleAccountRelations = append(v.VehicleAccountRelations, *relation)
+		}
+		v.vehicleAccountRelationsRetrieved = true
 	}
 	return
 }
 
-func (v *Vehicle) GetAttributes() (attributes *VehicleAttributes, err error) {
-	return v.client.Vehicles.GetVehicleAttributesByVIN(v.VehicleID)
-}
+// func (v *Vehicle) GetAttributes() (attributes *VehicleAttributes, err error) {
+// 	return v.client.Vehicles.GetVehicleAttributesByVIN(v.VehicleID)
+// }
 
-func (v *Vehicle) GetStatus() (status *VehicleStatus, err error) {
-	return v.client.Vehicles.GetVehicleStatusByVIN(v.VehicleID)
+// func (v *Vehicle) GetStatus() (status *VehicleStatus, err error) {
+// 	return v.client.Vehicles.GetVehicleStatusByVIN(v.VehicleID)
+// }
+
+/*
+Actions/Operations
+*/
+func (v Vehicle) BlinkLights(position *Position) (status *VehicleServiceStatus, err error) {
+	return v.client.Vehicles.BlinkLights(v.VehicleID, position)
 }
 
 func (v *Vehicle) GetPosition() (position *VehiclePosition, err error) {
@@ -118,6 +238,58 @@ func (v *Vehicle) GetTrips() (trips *VehicleTrips, err error) {
 
 func (v *Vehicle) Lock() (status *VehicleServiceStatus, err error) {
 	return v.client.Vehicles.LockVehicle(v.VehicleID)
+}
+
+func (v Vehicle) UnlockVehicle() (status *VehicleServiceStatus, err error) {
+	return v.client.Vehicles.UnlockVehicle(v.VehicleID)
+}
+
+/*
+	Properties
+*/
+
+func (v Vehicle) IsHeaterSupported() bool {
+	return v.Attributes.RemoteHeaterSupported || v.Attributes.PreclimatizationSupported
+}
+
+func (v Vehicle) IsHeaterOn() bool {
+	switch v.Status.Heater.Status {
+	case "on":
+		return true
+	case "off":
+		return false
+	default:
+		log.Printf("IsHeaterOn :: unexpected response: %s\n", v.Status.Heater.Status)
+		return false
+	}
+}
+
+func (v Vehicle) IsLockSupported() bool {
+	return v.Attributes.LockSupported
+}
+
+func (v Vehicle) IsUnlockSupported() bool {
+	return v.Attributes.UnlockSupported
+}
+
+func (v Vehicle) IsLocked() bool {
+	return v.Status.CarLocked
+}
+
+func (v Vehicle) IsRemoteHeaterSupported() bool {
+	return v.Attributes.RemoteHeaterSupported
+}
+
+func (v Vehicle) IsJournalLogSupported() bool {
+	return v.Attributes.JournalLogSupported
+}
+
+func (v Vehicle) IsJournalLogEnabled() bool {
+	return v.Attributes.JournalLogEnabled
+}
+
+func (v Vehicle) IsHonkAndBlinkSupported() bool {
+	return v.Attributes.HonkAndBlinkSupported
 }
 
 type VehicleAttributes struct {
@@ -283,21 +455,9 @@ type VehicleStatus struct {
 }
 
 type VehiclePosition struct {
-	Position struct {
-		Longitude float64     `json:"longitude"`
-		Latitude  float64     `json:"latitude"`
-		Timestamp string      `json:"timestamp"`
-		Speed     interface{} `json:"speed"`
-		Heading   interface{} `json:"heading"`
-	} `json:"position"`
-	CalculatedPosition struct {
-		Longitude interface{} `json:"longitude"`
-		Latitude  interface{} `json:"latitude"`
-		Timestamp string      `json:"timestamp"`
-		Speed     interface{} `json:"speed"`
-		Heading   interface{} `json:"heading"`
-	} `json:"calculatedPosition"`
-	client *Client // added for interface simplification
+	Position           Position `json:"position"`
+	CalculatedPosition Position `json:"calculatedPosition"`
+	client             *Client
 }
 
 type VehicleTrips struct {
@@ -355,8 +515,34 @@ type VehicleServiceStatus struct {
 	StartTime         string  `json:"startTime"`
 	ServiceType       string  `json:"serviceType"`
 	FailureReason     string  `json:"failureReason"` // TODO: no idea about the actual type
-	Service           string  `json:"service"`
-	VehicleID         string  `json:"vehicleId"`
+	Service           string  `json:"service"`       // hyperlink
+	VehicleID         string  `json:"vehicleId"`     // VIN
 	CustomerServiceID string  `json:"customerServiceId"`
 	client            *Client // added for interface simplification
 }
+
+/*
+	The call towards vss.client.Vehicles.GetServiceStatus failes with runtime error: invalid memory address or nil pointer dereference
+	which is pretty weird because i'm passing a regular string to a simple function.
+*/
+
+/*
+func (vss *VehicleServiceStatus) Refresh() error {
+	fmt.Printf("VehicleServiceStatus.Refresh() :: vss = %+v\n", vss)
+	fmt.Printf("VehicleServiceStatus.Refresh() :: vss.Service = %s\n", vss.Service)
+	vssNew, err := vss.client.Vehicles.GetServiceStatus(vss.Service)
+	if err != nil {
+		return err
+	}
+	// manually refreshing the original struct with the new values
+	vss.Status = vssNew.Status
+	vss.StatusTimestamp = vssNew.StatusTimestamp
+	vss.StartTime = vssNew.StartTime
+	vss.ServiceType = vssNew.ServiceType
+	vss.FailureReason = vssNew.FailureReason
+	vss.Service = vssNew.Service
+	vss.VehicleID = vssNew.VehicleID
+	vss.CustomerServiceID = vssNew.CustomerServiceID
+	return nil
+}
+*/

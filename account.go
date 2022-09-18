@@ -30,6 +30,7 @@ func (s *CustomerAccountService) GetAccountByHyperlink(url string) (customerAcco
 
 // CustomerAccount is returned at /customeraccounts
 type CustomerAccount struct {
+	AccountVehicleRelations          []AccountVehicleRelation
 	Username                         string   `json:"username"` // (can be phone number)
 	FirstName                        string   `json:"firstName"`
 	LastName                         string   `json:"lastName"`
@@ -37,6 +38,21 @@ type CustomerAccount struct {
 	HyperlinkAccount                 string   `json:"account"`                 // url
 	HyperlinkAccountVehicleRelations []string `json:"accountVehicleRelations"` // urls
 	client                           *Client  // added for interface simplification
+	accountVehicleRelationsRetrieved bool
+}
+
+func (ca *CustomerAccount) RetrieveHyperlinks() (err error) {
+	if !ca.accountVehicleRelationsRetrieved {
+		for _, url := range ca.HyperlinkAccountVehicleRelations {
+			relation, err := ca.client.AccountVehicleRelation.GetByHyperlink(url)
+			if err != nil {
+				return err
+			}
+			ca.AccountVehicleRelations = append(ca.AccountVehicleRelations, *relation)
+		}
+		ca.accountVehicleRelationsRetrieved = true
+	}
+	return
 }
 
 func (ca CustomerAccount) GetAccountVehicleRelationIds() (relationIds []int, err error) {

@@ -2,6 +2,8 @@ module github.com/theriverman/VolvoOnCall/cli
 
 go 1.19
 
+replace github.com/theriverman/VolvoOnCall => ../
+
 require github.com/urfave/cli/v2 v2.16.0
 
 require (

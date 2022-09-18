@@ -34,11 +34,16 @@ func TestClient_Initialise(t *testing.T) {
 
 	t.Logf("My Vehicles:\n")
 	for _, vehicle := range vehicles {
-		attributes, err := vehicle.GetAttributes()
-		if err != nil {
+		if err = vehicle.RetrieveHyperlinks(); err != nil {
 			t.Errorf("%v\n", err)
 			continue
 		}
-		t.Logf("  * %s (%s)\n", vehicle.VehicleID, attributes.RegistrationNumber)
+		t.Logf("  * %s (%s)\n", vehicle.VehicleID, vehicle.Attributes.RegistrationNumber)
+		t.Logf("    - IsHeaterSupported: %t\n", vehicle.IsHeaterSupported())
+		status, err := vehicle.BlinkLights(nil)
+		if err != nil {
+			t.Fatalf("%v", err)
+		}
+		client.Vehicles.EvaluateServiceStatusAuto(status)
 	}
 }
