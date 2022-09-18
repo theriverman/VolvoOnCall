@@ -9,12 +9,19 @@ import (
 
 const BaseUrl string = "https://vocapi%s.wirelesscar.net/customerapi/rest/v3.0"
 
+func NewClient(username, password string) (*Client, error) {
+	client := Client{}
+	client.Initialise()
+	client.Authenticate(username, password)
+	return &client, nil
+}
+
 type Client struct {
 	apiUrl        string
 	BaseURL       string
+	ServiceRegion string
 	Headers       *http.Header
 	HTTPClient    *http.Client
-	ServiceRegion string
 
 	isInitialised bool
 	Verbose       bool
@@ -23,9 +30,9 @@ type Client struct {
 	Request *RequestService
 
 	// Volvo Services
-	CustomerAccounts       *CustomerAccountsService
+	CustomerAccount        *CustomerAccountService
+	AccountVehicleRelation *AccountVehicleRelationsService
 	Vehicles               *VehiclesService
-	VehicleAccountRelation *VehicleAccountRelationService
 }
 
 func (c *Client) Initialise() error {
@@ -58,10 +65,9 @@ func (c *Client) Initialise() error {
 
 	// Bootstrapping Services
 	c.Request = &RequestService{c}
-	c.CustomerAccounts = &CustomerAccountsService{c, "customeraccounts"}
+	c.CustomerAccount = &CustomerAccountService{c, "customeraccounts"}
 	c.Vehicles = &VehiclesService{c, "vehicles"}
-	c.VehicleAccountRelation = &VehicleAccountRelationService{c, "vehicle-account-relations"}
-
+	c.AccountVehicleRelation = &AccountVehicleRelationsService{c, "vehicle-account-relations"}
 	c.isInitialised = true
 	return nil
 }

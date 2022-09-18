@@ -1,5 +1,7 @@
 package vocdriver
 
+import "log"
+
 type VehiclesService struct {
 	client   *Client
 	Endpoint string
@@ -7,6 +9,14 @@ type VehiclesService struct {
 
 func (v *VehiclesService) GetVehicleByVIN(vin string) (vehicle *Vehicle, err error) {
 	url := v.client.MakeURL(v.Endpoint, vin)
+	if _, err = v.client.Request.Get(url, &vehicle); err != nil {
+		return nil, err
+	}
+	vehicle.client = v.client
+	return
+}
+
+func (v *VehiclesService) GetVehicleByHyperlink(url string) (vehicle *Vehicle, err error) {
 	if _, err = v.client.Request.Get(url, &vehicle); err != nil {
 		return nil, err
 	}
@@ -70,11 +80,24 @@ func (v *VehiclesService) RetrieveServiceStatus(vin, customerServiceId string) (
 }
 
 type Vehicle struct {
-	Attributes              string   `json:"attributes"`              // url
-	Status                  string   `json:"status"`                  // url
-	VehicleAccountRelations []string `json:"vehicleAccountRelations"` // url
-	VehicleID               string   `json:"vehicleId"`               // vin
-	client                  *Client  // added for interface simplification
+	Attributes                       *VehicleAttributes
+	Status                           *VehicleStatus
+	VehicleAccountRelations          *AccountVehicleRelation
+	HyperlinkAttributes              string   `json:"attributes"`              // url
+	HyperlinkStatus                  string   `json:"status"`                  // url
+	HyperlinkVehicleAccountRelations []string `json:"vehicleAccountRelations"` // url
+	VehicleID                        string   `json:"vehicleId"`               // vin
+	client                           *Client  // added for interface simplification
+}
+
+func (v *Vehicle) RetrieveHyperlinks() (err error) {
+	if v.Attributes == nil {
+	}
+	if v.Status == nil {
+	}
+	if v.VehicleAccountRelations == nil {
+	}
+	return
 }
 
 func (v *Vehicle) GetAttributes() (attributes *VehicleAttributes, err error) {
@@ -149,6 +172,18 @@ type VehicleAttributes struct {
 		Iso2 string `json:"iso2"`
 	} `json:"country"`
 	client *Client // added for interface simplification
+}
+
+func (va VehicleAttributes) VIN() string {
+	switch {
+	case len(va.Vin) > 0:
+		return va.Vin
+	case len(va.VinLower) > 0:
+		return va.VinLower
+	default:
+		log.Panicln("vin could not be retrieved from VehicleAttributes")
+		return ""
+	}
 }
 
 type VehicleStatus struct {
