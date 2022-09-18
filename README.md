@@ -1,7 +1,7 @@
 # VolvoOnCall
 Library and CLI application written in Go to interact with the Volvo Cars (Volvo On Call) services.
 
-This project was inspired by [molobrakos/volvooncall](https://github.com/molobrakos/volvooncall), and it aims to maintain a certain level of compatibility with it API and configuration wise.
+This project was inspired by [molobrakos/volvooncall](https://github.com/molobrakos/volvooncall), and it aims to maintain a certain level of compatibility with it both API and configuration wise.
 
 # Installation
 Go to [Releases](https://github.com/theriverman/VolvoOnCall/releases) and download the latest version.
