@@ -17,6 +17,10 @@ type VehiclesService struct {
 	Endpoint string
 }
 
+/*
+	Low-level Functions
+*/
+
 func (v *VehiclesService) GetVehicleByVIN(vin string) (vehicle *Vehicle, err error) {
 	url := v.client.MakeURL(v.Endpoint, vin)
 	if _, err = v.client.Request.Get(url, &vehicle); err != nil {
@@ -156,6 +160,34 @@ func (v *VehiclesService) BlinkLights(vin string, position *Position) (status *V
 	return
 }
 
+// HonkAndBlink honks and blinks the car
+//
+// This API requires sending the client's position. You have two options:
+//   - Share your position by passing a valid *Position struct.
+//   - Pass in `nil` and the actual own position of the car will be sent used
+func (v *VehiclesService) HonkAndBlink(vin string, position *Position) (status *VehicleServiceStatus, err error) {
+	url := v.client.MakeURL(v.Endpoint, vin, "honkAndBlink")
+	if position == nil {
+		position = &Position{}
+		vehiclePosition, err := v.GetVehiclePositionByVIN(vin)
+		if err != nil {
+			return nil, err
+		}
+		position.Longitude = vehiclePosition.Position.Longitude
+		position.Latitude = vehiclePosition.Position.Latitude
+	}
+	payload := map[string]float64{
+		"clientAccuracy":  0.0,
+		"clientLatitude":  position.Latitude,
+		"clientLongitude": position.Longitude,
+	}
+	if _, err = v.client.Request.Post(url, payload, &status); err != nil {
+		return nil, err
+	}
+	status.client = v.client
+	return
+}
+
 func (v *VehiclesService) LockVehicle(vin string) (status *VehicleServiceStatus, err error) {
 	url := v.client.MakeURL(v.Endpoint, vin, "lock")
 	if _, err = v.client.Request.Post(url, nil, &status); err != nil {
@@ -167,6 +199,60 @@ func (v *VehiclesService) LockVehicle(vin string) (status *VehicleServiceStatus,
 
 func (v *VehiclesService) UnlockVehicle(vin string) (status *VehicleServiceStatus, err error) {
 	url := v.client.MakeURL(v.Endpoint, vin, "unlock")
+	if _, err = v.client.Request.Post(url, nil, &status); err != nil {
+		return nil, err
+	}
+	status.client = v.client
+	return
+}
+
+func (v *VehiclesService) StartEngine(vin string) (status *VehicleServiceStatus, err error) {
+	url := v.client.MakeURL(v.Endpoint, vin, "engine", "start")
+	if _, err = v.client.Request.Post(url, map[string]int{"runtime": 15}, &status); err != nil {
+		return nil, err
+	}
+	status.client = v.client
+	return
+}
+
+func (v *VehiclesService) StopEngine(vin string) (status *VehicleServiceStatus, err error) {
+	url := v.client.MakeURL(v.Endpoint, vin, "engine", "stop")
+	if _, err = v.client.Request.Post(url, nil, &status); err != nil {
+		return nil, err
+	}
+	status.client = v.client
+	return
+}
+
+func (v *VehiclesService) StartHeater(vin string) (status *VehicleServiceStatus, err error) {
+	url := v.client.MakeURL(v.Endpoint, vin, "heater", "start")
+	if _, err = v.client.Request.Post(url, nil, &status); err != nil {
+		return nil, err
+	}
+	status.client = v.client
+	return
+}
+
+func (v *VehiclesService) StopHeater(vin string) (status *VehicleServiceStatus, err error) {
+	url := v.client.MakeURL(v.Endpoint, vin, "heater", "stop")
+	if _, err = v.client.Request.Post(url, nil, &status); err != nil {
+		return nil, err
+	}
+	status.client = v.client
+	return
+}
+
+func (v *VehiclesService) StartPreclimatization(vin string) (status *VehicleServiceStatus, err error) {
+	url := v.client.MakeURL(v.Endpoint, vin, "preclimatization", "start")
+	if _, err = v.client.Request.Post(url, nil, &status); err != nil {
+		return nil, err
+	}
+	status.client = v.client
+	return
+}
+
+func (v *VehiclesService) StopPreclimatization(vin string) (status *VehicleServiceStatus, err error) {
+	url := v.client.MakeURL(v.Endpoint, vin, "preclimatization", "stop")
 	if _, err = v.client.Request.Post(url, nil, &status); err != nil {
 		return nil, err
 	}
@@ -248,6 +334,7 @@ func (v Vehicle) UnlockVehicle() (status *VehicleServiceStatus, err error) {
 	Properties
 */
 
+// IsHeaterSupported returns true if either Remote Heater or Preclimatization is supported
 func (v Vehicle) IsHeaterSupported() bool {
 	return v.Attributes.RemoteHeaterSupported || v.Attributes.PreclimatizationSupported
 }
@@ -280,6 +367,10 @@ func (v Vehicle) IsRemoteHeaterSupported() bool {
 	return v.Attributes.RemoteHeaterSupported
 }
 
+func (v Vehicle) IsPreclimatizationSupported() bool {
+	return v.Attributes.PreclimatizationSupported
+}
+
 func (v Vehicle) IsJournalLogSupported() bool {
 	return v.Attributes.JournalLogSupported
 }
@@ -290,6 +381,10 @@ func (v Vehicle) IsJournalLogEnabled() bool {
 
 func (v Vehicle) IsHonkAndBlinkSupported() bool {
 	return v.Attributes.HonkAndBlinkSupported
+}
+
+func (v Vehicle) IsEngineStartSupported() bool {
+	return v.Attributes.EngineStartSupported
 }
 
 type VehicleAttributes struct {
