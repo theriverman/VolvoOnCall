@@ -221,14 +221,6 @@ func (v *Vehicle) RetrieveHyperlinks() (err error) {
 	return
 }
 
-// func (v *Vehicle) GetAttributes() (attributes *VehicleAttributes, err error) {
-// 	return v.client.Vehicles.GetVehicleAttributesByVIN(v.VehicleID)
-// }
-
-// func (v *Vehicle) GetStatus() (status *VehicleStatus, err error) {
-// 	return v.client.Vehicles.GetVehicleStatusByVIN(v.VehicleID)
-// }
-
 /*
 Actions/Operations
 */
