@@ -74,7 +74,6 @@ func (v *VehiclesService) GetVehicleTripsByVIN(vin string) (trips *VehicleTrips,
 
 // GetServiceStatus retrieves the current status of an async operation (typically an action sent to a vehicle)
 func (v *VehiclesService) GetServiceStatus(url string) (vss *VehicleServiceStatus, err error) {
-	fmt.Println("hello from GetServiceStatus")
 	if _, err = v.client.Request.Get(url, &vss); err != nil {
 		return nil, err
 	}
@@ -82,12 +81,16 @@ func (v *VehiclesService) GetServiceStatus(url string) (vss *VehicleServiceStatu
 	return
 }
 
-func (v *VehiclesService) EvaluateServiceStatusAuto(vss *VehicleServiceStatus) (ok bool, err error) {
+// EvaluateServiceStatusAuto hangs the main application waiting for the requested operation to finish
+// During this time the Service API is polled every second and the response is evaluated
+//   - if the request timeouts (default: 30s), an error is returned
+//   - if the request fails, an error is returned
+func (v *VehiclesService) EvaluateServiceStatusAuto(vss *VehicleServiceStatus) (err error) {
 	timeoutSeconds := 30
 	if ServiceTypeMap[vss.ServiceType] == "Unlock Vehicle" {
 		vehicle, err := v.client.Vehicles.GetVehicleByVIN(vss.VehicleID)
 		if err != nil {
-			return false, fmt.Errorf("failed to retrieve vehicle details for %s", vss.VehicleID)
+			return fmt.Errorf("failed to retrieve vehicle details for %s", vss.VehicleID)
 		}
 		timeoutSeconds = vehicle.Attributes.UnlockTimeFrame
 		log.Printf("value of timeoutSeconds increased to %d to match the vehicle's unlockTimeFrame value", timeoutSeconds)
@@ -95,32 +98,34 @@ func (v *VehiclesService) EvaluateServiceStatusAuto(vss *VehicleServiceStatus) (
 	return v.EvaluateServiceStatus(vss, timeoutSeconds)
 }
 
-func (v *VehiclesService) EvaluateServiceStatus(vss *VehicleServiceStatus, timeoutSeconds int) (ok bool, err error) {
+func (v *VehiclesService) EvaluateServiceStatus(vss *VehicleServiceStatus, timeoutSeconds int) (err error) {
 	c := 0
-	fmt.Println("ENTERING the loop, i guess")
-loop:
-	fmt.Println("Cycle: ", c)
-	if c == timeoutSeconds {
-		return false, fmt.Errorf("request timeout (%ds)", timeoutSeconds)
+	for {
+		if c == timeoutSeconds {
+			return fmt.Errorf("request timeout (%ds)", timeoutSeconds)
+		}
+		if c > 0 {
+			if err = vss.Refresh(); err != nil {
+				return
+			}
+		}
+		switch vss.Status {
+		case "Started":
+			time.Sleep(1 * time.Second)
+			c++
+			continue
+		case "MessageDelivered":
+			time.Sleep(1 * time.Second)
+			c++
+			continue
+		case "Successful":
+			return nil
+		case "Failed":
+			return fmt.Errorf("request (%s) failed: %s", ServiceTypeMap[vss.ServiceType], vss.FailureReason)
+		default:
+			return fmt.Errorf("request (%s) failed with status (%s): %s", ServiceTypeMap[vss.ServiceType], vss.Status, vss.FailureReason)
+		}
 	}
-	if err = vss.Refresh(); err != nil {
-		return
-	}
-	switch vss.Status {
-	case "Started":
-		time.Sleep(1 * time.Second)
-		c++
-		goto loop
-	case "MessageDelivered":
-		time.Sleep(1 * time.Second)
-		c++
-		goto loop
-	case "Successful":
-		return ok, nil
-	case "Failed":
-		return false, fmt.Errorf("request (%s) failed: %s", ServiceTypeMap[vss.ServiceType], vss.FailureReason)
-	}
-	return false, fmt.Errorf("request (%s) failed with status (%s): %s", ServiceTypeMap[vss.ServiceType], vss.Status, vss.FailureReason)
 }
 
 // BlinkLights blinks the lights on the car without sounding the horn
@@ -147,6 +152,7 @@ func (v *VehiclesService) BlinkLights(vin string, position *Position) (status *V
 	if _, err = v.client.Request.Post(url, payload, &status); err != nil {
 		return nil, err
 	}
+	status.client = v.client
 	return
 }
 
@@ -155,6 +161,7 @@ func (v *VehiclesService) LockVehicle(vin string) (status *VehicleServiceStatus,
 	if _, err = v.client.Request.Post(url, nil, &status); err != nil {
 		return nil, err
 	}
+	status.client = v.client
 	return
 }
 
@@ -163,6 +170,7 @@ func (v *VehiclesService) UnlockVehicle(vin string) (status *VehicleServiceStatu
 	if _, err = v.client.Request.Post(url, nil, &status); err != nil {
 		return nil, err
 	}
+	status.client = v.client
 	return
 }
 
@@ -526,10 +534,7 @@ type VehicleServiceStatus struct {
 	which is pretty weird because i'm passing a regular string to a simple function.
 */
 
-/*
 func (vss *VehicleServiceStatus) Refresh() error {
-	fmt.Printf("VehicleServiceStatus.Refresh() :: vss = %+v\n", vss)
-	fmt.Printf("VehicleServiceStatus.Refresh() :: vss.Service = %s\n", vss.Service)
 	vssNew, err := vss.client.Vehicles.GetServiceStatus(vss.Service)
 	if err != nil {
 		return err
@@ -545,4 +550,3 @@ func (vss *VehicleServiceStatus) Refresh() error {
 	vss.CustomerServiceID = vssNew.CustomerServiceID
 	return nil
 }
-*/

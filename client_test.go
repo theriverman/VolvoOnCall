@@ -44,6 +44,8 @@ func TestClient_Initialise(t *testing.T) {
 		if err != nil {
 			t.Fatalf("%v", err)
 		}
-		client.Vehicles.EvaluateServiceStatusAuto(status)
+		if err = client.Vehicles.EvaluateServiceStatusAuto(status); err != nil {
+			t.Fatalf("%v", err)
+		}
 	}
 }
