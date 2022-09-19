@@ -323,11 +323,53 @@ func (v *Vehicle) GetTrips() (trips *VehicleTrips, err error) {
 }
 
 func (v *Vehicle) Lock() (status *VehicleServiceStatus, err error) {
+	if !v.IsLockSupported() {
+		return nil, fmt.Errorf("lock/unlock is not supported by %s [%s]", v.Attributes.RegistrationNumber, v.Attributes.Vin)
+	}
 	return v.client.Vehicles.LockVehicle(v.VehicleID)
 }
 
 func (v Vehicle) UnlockVehicle() (status *VehicleServiceStatus, err error) {
+	if !v.IsUnlockSupported() {
+		return nil, fmt.Errorf("lock/unlock is not supported by %s [%s]", v.Attributes.RegistrationNumber, v.Attributes.Vin)
+	}
 	return v.client.Vehicles.UnlockVehicle(v.VehicleID)
+}
+
+func (v Vehicle) StartEngine() (status *VehicleServiceStatus, err error) {
+	if !v.IsEngineStartSupported() {
+		return nil, fmt.Errorf("engine start/stop is not supported by %s [%s]", v.Attributes.RegistrationNumber, v.Attributes.Vin)
+	}
+	return v.client.Vehicles.StartEngine(v.VehicleID)
+}
+
+func (v Vehicle) StopEngine() (status *VehicleServiceStatus, err error) {
+	if !v.IsEngineStartSupported() {
+		return nil, fmt.Errorf("engine start/stop is not supported by %s [%s]", v.Attributes.RegistrationNumber, v.Attributes.Vin)
+	}
+	return v.client.Vehicles.StopEngine(v.VehicleID)
+}
+
+func (v Vehicle) StartHeater() (status *VehicleServiceStatus, err error) {
+	switch {
+	case v.IsHeaterSupported():
+		return v.client.Vehicles.StartHeater(v.VehicleID)
+	case v.IsPreclimatizationSupported():
+		return v.client.Vehicles.StartPreclimatization(v.VehicleID)
+	default:
+		return nil, fmt.Errorf("heater is not supported by %s [%s]", v.Attributes.RegistrationNumber, v.Attributes.Vin)
+	}
+}
+
+func (v Vehicle) StopHeater() (status *VehicleServiceStatus, err error) {
+	switch {
+	case v.IsHeaterSupported():
+		return v.client.Vehicles.StopHeater(v.VehicleID)
+	case v.IsPreclimatizationSupported():
+		return v.client.Vehicles.StopPreclimatization(v.VehicleID)
+	default:
+		return nil, fmt.Errorf("heater is not supported by %s [%s]", v.Attributes.RegistrationNumber, v.Attributes.Vin)
+	}
 }
 
 /*
