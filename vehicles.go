@@ -22,6 +22,9 @@ type VehiclesService struct {
 */
 
 func (v *VehiclesService) GetVehicleByVIN(vin string) (vehicle *Vehicle, err error) {
+	if vin == "" {
+		return nil, fmt.Errorf("vin must not be empty")
+	}
 	url := v.client.MakeURL(v.Endpoint, vin)
 	if _, err = v.client.Request.Get(url, &vehicle); err != nil {
 		return nil, err
@@ -32,6 +35,9 @@ func (v *VehiclesService) GetVehicleByVIN(vin string) (vehicle *Vehicle, err err
 }
 
 func (v *VehiclesService) GetVehicleByHyperlink(url string) (vehicle *Vehicle, err error) {
+	if url == "" {
+		return nil, fmt.Errorf("url must not be empty")
+	}
 	if _, err = v.client.Request.Get(url, &vehicle); err != nil {
 		return nil, err
 	}
@@ -41,6 +47,9 @@ func (v *VehiclesService) GetVehicleByHyperlink(url string) (vehicle *Vehicle, e
 }
 
 func (v *VehiclesService) GetVehicleAttributesByVIN(vin string) (attributes *VehicleAttributes, err error) {
+	if vin == "" {
+		return nil, fmt.Errorf("vin must not be empty")
+	}
 	url := v.client.MakeURL(v.Endpoint, vin, "attributes")
 	if _, err = v.client.Request.Get(url, &attributes); err != nil {
 		return nil, err
@@ -50,6 +59,9 @@ func (v *VehiclesService) GetVehicleAttributesByVIN(vin string) (attributes *Veh
 }
 
 func (v *VehiclesService) GetVehicleStatusByVIN(vin string) (status *VehicleStatus, err error) {
+	if vin == "" {
+		return nil, fmt.Errorf("vin must not be empty")
+	}
 	url := v.client.MakeURL(v.Endpoint, vin, "status")
 	if _, err = v.client.Request.Get(url, &status); err != nil {
 		return nil, err
@@ -59,6 +71,9 @@ func (v *VehiclesService) GetVehicleStatusByVIN(vin string) (status *VehicleStat
 }
 
 func (v *VehiclesService) GetVehiclePositionByVIN(vin string) (position *VehiclePosition, err error) {
+	if vin == "" {
+		return nil, fmt.Errorf("vin must not be empty")
+	}
 	url := v.client.MakeURL(v.Endpoint, vin, "position")
 	if _, err = v.client.Request.Get(url, &position); err != nil {
 		return nil, err
@@ -68,6 +83,9 @@ func (v *VehiclesService) GetVehiclePositionByVIN(vin string) (position *Vehicle
 }
 
 func (v *VehiclesService) GetVehicleTripsByVIN(vin string) (trips *VehicleTrips, err error) {
+	if vin == "" {
+		return nil, fmt.Errorf("vin must not be empty")
+	}
 	url := v.client.MakeURL(v.Endpoint, vin, "trips")
 	if _, err = v.client.Request.Get(url, &trips); err != nil {
 		return nil, err
@@ -138,6 +156,12 @@ func (v *VehiclesService) EvaluateServiceStatus(vss *VehicleServiceStatus, timeo
 //   - Share your position by passing a valid *Position struct.
 //   - Pass in `nil` and the actual own position of the car will be sent used
 func (v *VehiclesService) BlinkLights(vin string, position *Position) (status *VehicleServiceStatus, err error) {
+	if vin == "" {
+		return nil, fmt.Errorf("vin must not be empty")
+	}
+	if vin == "" {
+		return nil, fmt.Errorf("vin must not be empty")
+	}
 	url := v.client.MakeURL(v.Endpoint, vin, "honk_blink", "lights")
 	if position == nil {
 		position = &Position{}
@@ -166,6 +190,9 @@ func (v *VehiclesService) BlinkLights(vin string, position *Position) (status *V
 //   - Share your position by passing a valid *Position struct.
 //   - Pass in `nil` and the actual own position of the car will be sent used
 func (v *VehiclesService) HonkAndBlink(vin string, position *Position) (status *VehicleServiceStatus, err error) {
+	if vin == "" {
+		return nil, fmt.Errorf("vin must not be empty")
+	}
 	url := v.client.MakeURL(v.Endpoint, vin, "honkAndBlink")
 	if position == nil {
 		position = &Position{}
@@ -189,6 +216,9 @@ func (v *VehiclesService) HonkAndBlink(vin string, position *Position) (status *
 }
 
 func (v *VehiclesService) LockVehicle(vin string) (status *VehicleServiceStatus, err error) {
+	if vin == "" {
+		return nil, fmt.Errorf("vin must not be empty")
+	}
 	url := v.client.MakeURL(v.Endpoint, vin, "lock")
 	if _, err = v.client.Request.Post(url, nil, &status); err != nil {
 		return nil, err
@@ -198,6 +228,9 @@ func (v *VehiclesService) LockVehicle(vin string) (status *VehicleServiceStatus,
 }
 
 func (v *VehiclesService) UnlockVehicle(vin string) (status *VehicleServiceStatus, err error) {
+	if vin == "" {
+		return nil, fmt.Errorf("vin must not be empty")
+	}
 	url := v.client.MakeURL(v.Endpoint, vin, "unlock")
 	if _, err = v.client.Request.Post(url, nil, &status); err != nil {
 		return nil, err
@@ -207,6 +240,9 @@ func (v *VehiclesService) UnlockVehicle(vin string) (status *VehicleServiceStatu
 }
 
 func (v *VehiclesService) StartEngine(vin string) (status *VehicleServiceStatus, err error) {
+	if vin == "" {
+		return nil, fmt.Errorf("vin must not be empty")
+	}
 	url := v.client.MakeURL(v.Endpoint, vin, "engine", "start")
 	if _, err = v.client.Request.Post(url, map[string]int{"runtime": 15}, &status); err != nil {
 		return nil, err
@@ -216,6 +252,9 @@ func (v *VehiclesService) StartEngine(vin string) (status *VehicleServiceStatus,
 }
 
 func (v *VehiclesService) StopEngine(vin string) (status *VehicleServiceStatus, err error) {
+	if vin == "" {
+		return nil, fmt.Errorf("vin must not be empty")
+	}
 	url := v.client.MakeURL(v.Endpoint, vin, "engine", "stop")
 	if _, err = v.client.Request.Post(url, nil, &status); err != nil {
 		return nil, err
@@ -225,6 +264,9 @@ func (v *VehiclesService) StopEngine(vin string) (status *VehicleServiceStatus, 
 }
 
 func (v *VehiclesService) StartHeater(vin string) (status *VehicleServiceStatus, err error) {
+	if vin == "" {
+		return nil, fmt.Errorf("vin must not be empty")
+	}
 	url := v.client.MakeURL(v.Endpoint, vin, "heater", "start")
 	if _, err = v.client.Request.Post(url, nil, &status); err != nil {
 		return nil, err
@@ -234,6 +276,9 @@ func (v *VehiclesService) StartHeater(vin string) (status *VehicleServiceStatus,
 }
 
 func (v *VehiclesService) StopHeater(vin string) (status *VehicleServiceStatus, err error) {
+	if vin == "" {
+		return nil, fmt.Errorf("vin must not be empty")
+	}
 	url := v.client.MakeURL(v.Endpoint, vin, "heater", "stop")
 	if _, err = v.client.Request.Post(url, nil, &status); err != nil {
 		return nil, err
@@ -243,6 +288,9 @@ func (v *VehiclesService) StopHeater(vin string) (status *VehicleServiceStatus, 
 }
 
 func (v *VehiclesService) StartPreclimatization(vin string) (status *VehicleServiceStatus, err error) {
+	if vin == "" {
+		return nil, fmt.Errorf("vin must not be empty")
+	}
 	url := v.client.MakeURL(v.Endpoint, vin, "preclimatization", "start")
 	if _, err = v.client.Request.Post(url, nil, &status); err != nil {
 		return nil, err
@@ -252,6 +300,9 @@ func (v *VehiclesService) StartPreclimatization(vin string) (status *VehicleServ
 }
 
 func (v *VehiclesService) StopPreclimatization(vin string) (status *VehicleServiceStatus, err error) {
+	if vin == "" {
+		return nil, fmt.Errorf("vin must not be empty")
+	}
 	url := v.client.MakeURL(v.Endpoint, vin, "preclimatization", "stop")
 	if _, err = v.client.Request.Post(url, nil, &status); err != nil {
 		return nil, err
@@ -263,6 +314,9 @@ func (v *VehiclesService) StopPreclimatization(vin string) (status *VehicleServi
 // Utils
 
 func (v *VehiclesService) RetrieveServiceStatus(vin, customerServiceId string) (status *VehicleServiceStatus, err error) {
+	if vin == "" || customerServiceId == "" {
+		return nil, fmt.Errorf("vin and customerServiceId must not be empty")
+	}
 	url := v.client.MakeURL(v.Endpoint, vin, "services", customerServiceId)
 	if _, err = v.client.Request.Get(url, &status); err != nil {
 		return nil, err
