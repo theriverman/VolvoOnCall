@@ -25,9 +25,9 @@ func actionRegister(c *cli.Context) error {
 	return Config.WriteToFile(defaultConfPath)
 }
 
-func actionListCars(c *cli.Context) error {
-	return nil
-}
+// func actionListCars(c *cli.Context) error {
+// 	return nil
+// }
 
 func actionStatus(c *cli.Context) error {
 	return nil

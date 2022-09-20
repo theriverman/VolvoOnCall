@@ -5,6 +5,7 @@
 *.so
 *.dylib
 /cli/dist
+resource*.syso
 
 
 # Test binary, built with `go test -c`

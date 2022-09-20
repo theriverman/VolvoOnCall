@@ -6,7 +6,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
+	vocdriver "github.com/theriverman/VolvoOnCall"
 	"github.com/urfave/cli/v2"
 )
 
@@ -20,6 +22,9 @@ var (
 	GitCommit        string        = ""
 	Config           Configuration = Configuration{}
 )
+
+// core handles
+var client *vocdriver.Client
 
 // application behaviour
 var appVerboseMode bool = false
@@ -63,15 +68,47 @@ func NewApplication() *cli.App {
 				// add verbose logging here stating that the default config file does not exist
 				fmt.Println("$HOME/.voc.conf was not found")
 			}
+			client = &vocdriver.Client{
+				ServiceRegion: Config.Region,
+				BaseURL:       Config.URL,
+			}
+			if username == "" || password == "" {
+				username = Config.Username
+				password = Config.Password
+			}
+			if err = client.Initialise(); err != nil {
+				return err
+			}
+			client.Authenticate(username, password)
 			return nil
 		},
 		Commands: []*cli.Command{
 			// list
 			{
-				Name:   "list",
-				Usage:  "List all cars associated with your Volvo On Call account",
-				Action: actionListCars,
-				Flags:  []cli.Flag{},
+				Name:  "cars",
+				Usage: "List all cars associated with your Volvo On Call account",
+				Action: func(c *cli.Context) error {
+					account, err := client.CustomerAccount.GetAccount()
+					if err != nil {
+						return err
+					}
+					vehicles, err := account.GetVehicles()
+					if err != nil {
+						return err
+					}
+
+					fmt.Printf("Cars associated to Volvo Account (%s):\n", account.Username)
+					fmt.Println("------------------------------------" + strings.Repeat("-", len(account.Username)))
+					for _, vehicle := range vehicles {
+						if err = vehicle.RetrieveHyperlinks(); err != nil {
+							return err
+						}
+						fmt.Printf("  * %s (%s)\n", vehicle.VehicleID, vehicle.Attributes.RegistrationNumber)
+					}
+
+					return nil
+				},
+				Flags: []cli.Flag{},
 			},
 			// status
 			{
@@ -127,6 +164,23 @@ func NewApplication() *cli.App {
 			// engine [start/stop]
 
 			// honk and blink
+			{
+				Name:  "heater",
+				Usage: "Start/Stop the car's heater/climate",
+				Flags: []cli.Flag{},
+				Subcommands: []*cli.Command{
+					{
+						Name:   "start",
+						Usage:  "Start the car's heater",
+						Action: startHeater,
+					},
+					{
+						Name:   "stop",
+						Usage:  "Stop  the car's heater",
+						Action: stopHeater,
+					},
+				},
+			},
 
 			// call (method)
 
