@@ -27,7 +27,6 @@ func (s *AccountVehicleRelationsService) GetByHyperlink(url string) (vehicleAccR
 type AccountVehicleRelation struct {
 	Account                         *CustomerAccount
 	Vehicle                         *Vehicle
-	AccountVehicleRelation          *AccountVehicleRelation
 	VehicleID                       string `json:"vehicleId"`                 // VIN
 	Username                        string `json:"username"`                  // typically a phone number
 	Status                          string `json:"status"`                    // other states that "Verified" are yet unknown
@@ -47,11 +46,6 @@ func (avr *AccountVehicleRelation) RetrieveHyperlinks() (err error) {
 	}
 	if avr.Vehicle == nil {
 		if avr.Vehicle, err = avr.client.Vehicles.GetVehicleByHyperlink(avr.HyperlinkVehicle); err != nil {
-			return
-		}
-	}
-	if avr.AccountVehicleRelation == nil {
-		if avr.AccountVehicleRelation, err = avr.client.AccountVehicleRelation.GetByHyperlink(avr.HyperlinkAccountVehicleRelation); err != nil {
 			return
 		}
 	}
