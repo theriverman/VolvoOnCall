@@ -40,9 +40,8 @@ var selectedVin string = ""
 func NewApplication() *cli.App {
 	return &cli.App{
 		Name:    AppName,
-		Usage:   fmt.Sprintf("The purpose of %s is not explained here yet", AppName),
+		Usage:   "A CLI application to interact with Volvo Cars (On Call) services",
 		Version: AppSemVersion,
-		// application-level flags can be define below. these are applicable during the whole runtime
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:        "verbose",
@@ -227,7 +226,7 @@ func NewApplication() *cli.App {
 			// mgtt
 			{
 				Name:   "register",
-				Usage:  "Save your VOC username and password in $HOME/.voc.conf",
+				Usage:  fmt.Sprintf("Save your %s username and password in $HOME/.voc.conf", AppName),
 				Action: actionRegister,
 				Flags: []cli.Flag{
 					&cli.StringFlag{
