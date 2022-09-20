@@ -102,6 +102,14 @@ func (c *Client) MakeURL(EndpointParts ...string) string {
 	return c.apiUrl + "/" + strings.Join(EndpointParts, "/")
 }
 
+func (c *Client) EvaluateServiceStatus(vss *VehicleServiceStatus, timeoutSeconds int) (err error) {
+	return c.Vehicles.EvaluateServiceStatus(vss, timeoutSeconds)
+}
+
+func (c *Client) EvaluateServiceStatusAuto(vss *VehicleServiceStatus) (err error) {
+	return c.Vehicles.EvaluateServiceStatusAuto(vss)
+}
+
 func basicAuth(username, password string) string {
 	auth := username + ":" + password
 	return base64.StdEncoding.EncodeToString([]byte(auth))
