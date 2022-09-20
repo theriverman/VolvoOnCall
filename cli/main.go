@@ -29,9 +29,12 @@ var client *vocdriver.Client
 // application behaviour
 var appVerboseMode bool = false
 
+// runtime values
+var selectedVin string = ""
+
 // demo values for the template
 // Refer to the documentation of urfave/cli at https://github.com/urfave/cli
-var username, password string
+// var username, password string
 
 // NewApplication is the primary entrypoint to our CLI application. the base logic shall be implemented here
 func NewApplication() *cli.App {
@@ -45,6 +48,16 @@ func NewApplication() *cli.App {
 				Name:        "verbose",
 				Destination: &appVerboseMode,
 				Usage:       fmt.Sprintf("Runs %s in verbose mode", AppName),
+			},
+			&cli.StringFlag{
+				Name:        "username",
+				Destination: &Config.Username,
+				Usage:       "Volvo On Call username",
+			},
+			&cli.StringFlag{
+				Name:        "password",
+				Destination: &Config.Password,
+				Usage:       "Volvo On Call password",
 			},
 		},
 		Before: func(c *cli.Context) error {
@@ -63,7 +76,6 @@ func NewApplication() *cli.App {
 					// add logging here
 					return err
 				}
-				// fmt.Printf("Config: %+v\n", Config)  // TODO: THIS CONTAINS SENSITIVE DATA
 			} else if errors.Is(err, os.ErrNotExist) {
 				// add verbose logging here stating that the default config file does not exist
 				fmt.Println("$HOME/.voc.conf was not found")
@@ -72,18 +84,17 @@ func NewApplication() *cli.App {
 				ServiceRegion: Config.Region,
 				BaseURL:       Config.URL,
 			}
-			if username == "" || password == "" {
-				username = Config.Username
-				password = Config.Password
-			}
+			// if username == "" || password == "" {
+			// 	username = Config.Username
+			// 	password = Config.Password
+			// }
 			if err = client.Initialise(); err != nil {
 				return err
 			}
-			client.Authenticate(username, password)
+			client.Authenticate(Config.Username, Config.Password)
 			return nil
 		},
 		Commands: []*cli.Command{
-			// list
 			{
 				Name:  "cars",
 				Usage: "List all cars associated with your Volvo On Call account",
@@ -92,13 +103,16 @@ func NewApplication() *cli.App {
 					if err != nil {
 						return err
 					}
+					if err = account.RetrieveHyperlinks(); err != nil {
+						return err
+					}
 					vehicles, err := account.GetVehicles()
 					if err != nil {
 						return err
 					}
 
-					fmt.Printf("Cars associated to Volvo Account (%s):\n", account.Username)
-					fmt.Println("------------------------------------" + strings.Repeat("-", len(account.Username)))
+					fmt.Printf("Cars associated to Volvo Account(%s):\n", account.Username)
+					fmt.Println("-----------------------------------" + strings.Repeat("-", len(account.Username)))
 					for _, vehicle := range vehicles {
 						if err = vehicle.RetrieveHyperlinks(); err != nil {
 							return err
@@ -108,100 +122,126 @@ func NewApplication() *cli.App {
 
 					return nil
 				},
-				Flags: []cli.Flag{},
 			},
-			// status
-			{
-				Name:   "status",
-				Usage:  "Print a brief overview about the cars",
-				Action: actionStatus,
-				Flags:  []cli.Flag{},
-			},
-			// trips
-			{
-				Name:   "trips",
-				Usage:  "Print a brief overview about the last trips",
-				Action: actionTrips,
-				Flags:  []cli.Flag{},
-			},
-			// owntracks
-
-			// print
-
 			// lock/unlock
 			{
 				Name:   "lock",
 				Usage:  "Lock the car",
 				Action: actionLock,
-				Flags:  []cli.Flag{},
+				Flags:  commonFlagsVin(),
+				Before: selectVinOrThrowError,
 			},
 			{
 				Name:   "unlock",
 				Usage:  "Unlock the car",
 				Action: actionUnlock,
-				Flags:  []cli.Flag{},
+				Flags:  commonFlagsVin(),
+				Before: selectVinOrThrowError,
 			},
 
 			// heater [start/stop]
 			{
 				Name:  "heater",
 				Usage: "Start/Stop the car's heater/climate",
-				Flags: []cli.Flag{},
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:        "vin",
+						Usage:       "Identify the car by its VIN",
+						Value:       "",
+						Destination: &selectedVin,
+					},
+				},
+				Before: selectVinOrThrowError,
 				Subcommands: []*cli.Command{
 					{
 						Name:   "start",
 						Usage:  "Start the car's heater",
-						Action: startHeater,
+						Action: actionStartHeater,
 					},
 					{
 						Name:   "stop",
 						Usage:  "Stop  the car's heater",
-						Action: stopHeater,
+						Action: actionStopHeater,
 					},
 				},
 			},
 
-			// engine [start/stop]
+			// engine
+			{
+				Name:   "engine",
+				Usage:  "Start/Stop the car's engine",
+				Flags:  commonFlagsVin(),
+				Before: selectVinOrThrowError,
+				Subcommands: []*cli.Command{
+					{
+						Name:   "start",
+						Usage:  "Start the car's engine",
+						Action: actionStartEngine,
+					},
+					{
+						Name:   "stop",
+						Usage:  "Stop  the car's engine",
+						Action: actionStopEngine,
+					},
+				},
+			},
 
 			// honk and blink
 			{
-				Name:  "heater",
-				Usage: "Start/Stop the car's heater/climate",
-				Flags: []cli.Flag{},
-				Subcommands: []*cli.Command{
-					{
-						Name:   "start",
-						Usage:  "Start the car's heater",
-						Action: startHeater,
-					},
-					{
-						Name:   "stop",
-						Usage:  "Stop  the car's heater",
-						Action: stopHeater,
-					},
-				},
+				Name:   "blink",
+				Usage:  "Flash the turn signals",
+				Flags:  commonFlagsVin(),
+				Before: selectVinOrThrowError,
+				Action: actionBlink,
 			},
+
+			{
+				Name:   "honk",
+				Usage:  "Honk the horn",
+				Flags:  commonFlagsVin(),
+				Before: selectVinOrThrowError,
+				Action: actionHonk,
+			},
+
+			// status
+			{
+				Name:   "status",
+				Usage:  "Print a brief overview about the cars",
+				Action: actionStatus,
+				Before: selectVinOrThrowError,
+				Flags:  commonFlagsVin(),
+			},
+
+			// trips
+			{
+				Name:   "trips",
+				Usage:  "Print a brief overview about the last trips",
+				Action: actionTrips,
+				Before: selectVinOrThrowError,
+				Flags:  commonFlagsVin(),
+			},
+			// owntracks
 
 			// call (method)
 
 			// mgtt
 			{
 				Name:   "register",
-				Usage:  "Save your VOC username and password in a file at your $HOME folder",
+				Usage:  "Save your VOC username and password in $HOME/.voc.conf",
 				Action: actionRegister,
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:        "username",
 						Usage:       "Your Volvo On Call username",
-						Value:       "",
-						Destination: &username,
+						Value:       Config.Username,
+						Destination: &Config.Username,
 						Required:    true,
 					},
 					&cli.StringFlag{
 						Name:        "password",
 						Usage:       "Your Volvo On Call password",
-						Value:       "",
-						Destination: &password,
+						Value:       Config.Password,
+						Destination: &Config.Password,
 						Required:    true,
 					},
 				},
@@ -213,7 +253,6 @@ func NewApplication() *cli.App {
 			},
 		},
 		Copyright: AppCopyrightText,
-		// see the urfave/cli documentation for all possible options: https://github.com/urfave/cli/blob/master/docs/v2/manual.md
 	}
 }
 

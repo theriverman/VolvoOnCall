@@ -6,6 +6,7 @@ package main
 */
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -20,37 +21,98 @@ func actionRegister(c *cli.Context) error {
 		return err
 	}
 	defaultConfPath := filepath.Join(homeDirPath, ".voc.conf")
-	Config.Username = username
-	Config.Password = password
 	return Config.WriteToFile(defaultConfPath)
 }
 
-// func actionListCars(c *cli.Context) error {
-// 	return nil
-// }
-
 func actionStatus(c *cli.Context) error {
+	vehicle, err := client.Vehicles.GetVehicleByVIN(selectedVin)
+	if err != nil {
+		return err
+	}
+	s, err := json.MarshalIndent(vehicle.Status, "", "\t")
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(s))
 	return nil
 }
 
 func actionTrips(c *cli.Context) error {
+	trips, err := client.Vehicles.GetVehicleTripsByVIN(selectedVin)
+	if err != nil {
+		return err
+	}
+	s, err := json.MarshalIndent(trips.Trips, "", "\t")
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(s))
 	return nil
 }
 
 func actionLock(c *cli.Context) error {
-	return nil
+	status, err := client.Vehicles.LockVehicle(selectedVin)
+	if err != nil {
+		return err
+	}
+	return client.Vehicles.EvaluateServiceStatusAuto(status)
 }
 
 func actionUnlock(c *cli.Context) error {
-	return nil
+	status, err := client.Vehicles.UnlockVehicle(selectedVin)
+	if err != nil {
+		return err
+	}
+	fmt.Println("Within 2 minutes press once gently on the rubberised pressure plate underneath the boot lid handle to unlock the car")
+	return client.Vehicles.EvaluateServiceStatusAuto(status)
 }
 
-func startHeater(c *cli.Context) error {
-	return nil
+func actionStartHeater(c *cli.Context) error {
+	status, err := client.Vehicles.StartHeater(selectedVin)
+	if err != nil {
+		return err
+	}
+	return client.Vehicles.EvaluateServiceStatusAuto(status)
 }
 
-func stopHeater(c *cli.Context) error {
-	return nil
+func actionStopHeater(c *cli.Context) error {
+	status, err := client.Vehicles.StopHeater(selectedVin)
+	if err != nil {
+		return err
+	}
+	return client.Vehicles.EvaluateServiceStatusAuto(status)
+}
+
+func actionStartEngine(c *cli.Context) error {
+	status, err := client.Vehicles.StartEngine(selectedVin)
+	if err != nil {
+		return err
+	}
+	return client.Vehicles.EvaluateServiceStatusAuto(status)
+}
+
+func actionStopEngine(c *cli.Context) error {
+	status, err := client.Vehicles.StopEngine(selectedVin)
+	if err != nil {
+		return err
+	}
+	return client.Vehicles.EvaluateServiceStatusAuto(status)
+}
+
+func actionBlink(c *cli.Context) error {
+	status, err := client.Vehicles.BlinkLights(selectedVin, nil)
+	if err != nil {
+		return err
+	}
+	return client.Vehicles.EvaluateServiceStatusAuto(status)
+}
+
+func actionHonk(c *cli.Context) error {
+	status, err := client.Vehicles.HonkAndBlink(selectedVin, nil)
+	if err != nil {
+		return err
+	}
+	return client.Vehicles.EvaluateServiceStatusAuto(status)
 }
 
 func actionVersion(c *cli.Context) error {
