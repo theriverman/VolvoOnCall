@@ -42,6 +42,7 @@ info:
 	@echo "  * build-darwin"
 	@echo "  * build-linux"
 	@echo "  * build-windows"
+	@echo "  * install"
 	@echo "    -----------------------------------------------"
 	@echo "  * build-all"
 	@echo "  * create-tar"
@@ -70,6 +71,12 @@ build-enterprise-linux:
 	@GOOS=linux GOARCH=amd64 go build $(GO_LD_FLAGS) --tags enterprise -o dist/$(BINARY_NAME).enterprise-linux-amd64
 
 build-all: clean build-darwin build-linux build-windows build-enterprise-linux
+
+install:
+	@echo "Building for host system: $(shell go env GOOS)/$(shell go env GOARCH)"
+	$(eval BUILD_TYPE := internal/verification)
+	$(eval GO_LD_FLAGS := -ldflags "-X 'main.AppName=$(AppName)' -X 'main.AppBuildDate=$(BUILD_TIME)' -X 'main.AppBuildType=$(BUILD_TYPE)' -X 'main.AppCopyrightText=$(COPYRIGHT_TEXT)' -X 'main.AppSemVersion=$(LATEST_GIT_TAG)' -X 'main.GitCommit=$(LATEST_GIT_COMMIT)'")
+	@go install $(GO_LD_FLAGS) -o dist/$(BINARY_NAME)$(BINARY_SUFFIX)
 
 clean:
 	rm -rf ./dist/*
