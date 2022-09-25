@@ -1,7 +1,7 @@
 # GENERAL
 AppName := VolvoOnCall
 BINARY_NAME := voc
-COPYRIGHT_TEXT := Copyright 2022 - $(shell date '+%Y') Kristof Daja. All rights reserved. This work is licensed under the terms of the MIT license. For a copy, see <https://opensource.org/licenses/MIT>.
+COPYRIGHT_TEXT := Copyright 2022 - $(shell date '+%Y') github.com/theriverman/VolvoOnCall. All rights reserved. MIT license. For a copy, see <https://opensource.org/licenses/MIT>.
 BUILD_TIME := $(shell date '+%c')
 
 # Configure OS-specific binary suffix

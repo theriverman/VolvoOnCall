@@ -13,7 +13,10 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/tidwall/gjson"
 	"github.com/urfave/cli/v2"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
 
 func actionCars(c *cli.Context) error {
@@ -55,11 +58,53 @@ func actionStatus(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	s, err := json.MarshalIndent(vehicle.Status, "", "\t")
-	if err != nil {
-		return err
+	if asJson {
+		s, err := json.MarshalIndent(vehicle.Status, "", "\t")
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(s))
+		return nil
 	}
-	fmt.Println(string(s))
+	// for more advanced query options, see the Path Syntax at https://github.com/tidwall/gjson
+	if len(customAttributes.Value()) > 0 {
+		s, err := json.MarshalIndent(vehicle.Status, "", "\t")
+		if err != nil {
+			return err
+		}
+		for _, v := range customAttributes.Value() {
+			fmt.Printf("%s: %s\n", v, gjson.GetBytes(s, v).String())
+		}
+		return nil
+	}
+
+	// default mode - print select attributes
+	fmt.Printf("Average Fuel Consumption:\t%.1f l/100 km\n", vehicle.Status.AverageFuelConsumption/10)
+	fmt.Printf("Average Speed:\t\t\t%d km/h\n", vehicle.Status.AverageSpeed)
+	fmt.Printf("Brake Fluid:\t\t\t%s\n", vehicle.Status.BrakeFluid)
+	if len(vehicle.Status.BulbFailures) > 0 {
+		fmt.Println("Bulb Failures:")
+		for _, failure := range vehicle.Status.BulbFailures {
+			fmt.Printf("\t %s\n", failure)
+		}
+	}
+	fmt.Printf("Car Locked:\t\t\t%t\n", vehicle.Status.CarLocked)
+	fmt.Printf("Distance to Empty:\t\t%d km\n", vehicle.Status.DistanceToEmpty)
+	doors := vehicle.Status.Doors
+	if doors.HoodOpen || doors.FrontLeftDoorOpen || doors.FrontRightDoorOpen || doors.RearLeftDoorOpen || doors.RearRightDoorOpen || doors.TailgateOpen {
+		fmt.Printf("Doors Open:\t\t\t%t\n", vehicle.Status.CarLocked)
+		fmt.Printf("\t Hood Open: %t\n", doors.HoodOpen)
+		fmt.Printf("\t Front Left Door Open: %t\n", doors.FrontLeftDoorOpen)
+		fmt.Printf("\t Front Right Door Open: %t\n", doors.FrontRightDoorOpen)
+		fmt.Printf("\t Rear Left Door Open: %t\n", doors.RearLeftDoorOpen)
+		fmt.Printf("\t Rear Right Door Open: %t\n", doors.RearRightDoorOpen)
+		fmt.Printf("\t Tailgate Open: %t\n", doors.TailgateOpen)
+	} else {
+		fmt.Println("Doors Open:\t\t\tNone")
+	}
+	fmt.Printf("Engine Running:\t\t\t%t\n", vehicle.Status.EngineRunning)
+	fmt.Printf("Fuel Amount [l]:\t\t%d l\n", vehicle.Status.FuelAmount)
+	fmt.Printf("Fuel Amount [%%]:\t\t%d%%\n", vehicle.Status.FuelAmountLevel)
 	return nil
 }
 
@@ -68,11 +113,40 @@ func actionTrips(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	s, err := json.MarshalIndent(trips.Trips, "", "\t")
-	if err != nil {
-		return err
+	if asJson {
+		s, err := json.MarshalIndent(trips.Trips, "", "\t")
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(s))
+		return nil
 	}
-	fmt.Println(string(s))
+
+	// default mode
+	p := message.NewPrinter(language.English)
+	for i := len(trips.Trips) - 1; i >= 0; i-- { // ! reverse-loop !
+		trip := trips.Trips[i]
+		fmt.Printf("Trip %d\n", i+1)
+		fmt.Printf("  ID: %d\n", trip.ID)
+		fmt.Printf("  Name: %s\n", trip.Name)
+		fmt.Printf("  Category: %s\n", trip.Category)
+		fmt.Printf("  User Notes: %s\n", trip.UserNotes)
+		for ii, tripDetail := range trip.TripDetails {
+			fmt.Printf("  Trip Detail %d\n", ii+1)
+			fmt.Printf("    Start Time: %s\n", tripDetail.StartTime)
+			fmt.Printf("    End   Time: %s\n", tripDetail.EndTime)
+			fmt.Printf("    Fuel Consumption: %d l\n", tripDetail.FuelConsumption/100)
+			fmt.Printf("    Electrical Consumption: %d kWh\n", tripDetail.ElectricalConsumption)
+			fmt.Printf("    Electrical Regeneration: %d kWh\n", tripDetail.ElectricalRegeneration)
+			fmt.Printf("    Distance: %d km\n", tripDetail.Distance/1000)
+			p.Printf("    Start Odometer: %d km\n", tripDetail.StartOdometer/1000)
+			p.Printf("    End   Odometer: %d km\n", tripDetail.EndOdometer/1000)
+			fmt.Printf("    Start Position: %+v\n", tripDetail.StartPosition)
+			fmt.Printf("    End   Position: %+v\n", tripDetail.EndPosition)
+			fmt.Println()
+		}
+		fmt.Println()
+	}
 	return nil
 }
 

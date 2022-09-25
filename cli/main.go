@@ -30,6 +30,8 @@ var appVerboseMode bool = false
 
 // runtime values
 var selectedVin string = ""
+var asJson bool = false
+var customAttributes *cli.StringSlice = &cli.StringSlice{}
 
 // NewApplication is the primary entrypoint to our CLI application. the base logic shall be implemented here
 func NewApplication() *cli.App {
@@ -173,10 +175,22 @@ func NewApplication() *cli.App {
 			// status
 			{
 				Name:   "status",
-				Usage:  "Print a brief overview about the cars",
+				Usage:  "Get a brief overview about a select car",
 				Action: actionStatus,
 				Before: selectVinOrThrowError,
-				Flags:  commonFlagsVin(),
+				Flags: append(commonFlagsVin(), []cli.Flag{
+					&cli.BoolFlag{
+						Name:        "json",
+						Usage:       "Return raw JSON response",
+						Value:       false,
+						Destination: &asJson,
+					},
+					&cli.StringSliceFlag{
+						Name:        "attributes",
+						Usage:       "Comma-separated JSON parameters to return",
+						Destination: customAttributes,
+					},
+				}...),
 			},
 
 			// trips
@@ -185,7 +199,14 @@ func NewApplication() *cli.App {
 				Usage:  "Print a brief overview about the last trips",
 				Action: actionTrips,
 				Before: selectVinOrThrowError,
-				Flags:  commonFlagsVin(),
+				Flags: append(commonFlagsVin(), []cli.Flag{
+					&cli.BoolFlag{
+						Name:        "json",
+						Usage:       "Return raw JSON response",
+						Value:       false,
+						Destination: &asJson,
+					},
+				}...),
 			},
 			// owntracks
 
