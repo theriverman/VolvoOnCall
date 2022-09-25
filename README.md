@@ -1,9 +1,9 @@
 # VolvoOnCall
-Library and [CLI application](./cli/) written in Go to interact with the Volvo Cars (Volvo On Call) services.
+Library and [CLI application](./voc/) written in Go to interact with the Volvo Cars (Volvo On Call) services.
 
 This project was inspired by [molobrakos/volvooncall](https://github.com/molobrakos/volvooncall), and it aims to maintain a certain level of compatibility with it both API and configuration wise.
 
-For more about the CLI application, see [cli/README.md](./cli/README.md).
+For more about the CLI application, see [cli/README.md](./voc/README.md).
 
 # Get the Library
 ```bash

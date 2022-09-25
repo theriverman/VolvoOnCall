@@ -8,7 +8,7 @@ Go to [Releases](https://github.com/theriverman/VolvoOnCall/releases) and downlo
 
 Alternatively, you can install it from source by executing the following command:
 ```bash
-go install github.com/theriverman/VolvoOnCall/cli
+go install github.com/theriverman/VolvoOnCall/voc
 ```
 
 # Configuration File

@@ -4,7 +4,7 @@
 *.dll
 *.so
 *.dylib
-/cli/dist
+/voc/dist
 resource*.syso
 
 
@@ -17,4 +17,4 @@ resource*.syso
 # Dependency directories (remove the comment below to include it)
 # vendor/
 .env
-/cli/.env
+/voc/.env

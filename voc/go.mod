@@ -1,4 +1,4 @@
-module github.com/theriverman/VolvoOnCall/cli
+module github.com/theriverman/VolvoOnCall/voc
 
 go 1.19
 
