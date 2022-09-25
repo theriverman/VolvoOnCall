@@ -249,7 +249,7 @@ func main() {
 	cli.VersionFlag = &cli.BoolFlag{
 		Name:    "version",
 		Aliases: []string{"V"},
-		Usage:   "Prints version information of go-socks5-cli and quit",
+		Usage:   fmt.Sprintf("Prints version information of %s and quit", AppName),
 	}
 
 	app := NewApplication()
