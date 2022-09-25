@@ -11,9 +11,35 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/urfave/cli/v2"
 )
+
+func actionCars(c *cli.Context) error {
+	account, err := client.CustomerAccount.GetAccount()
+	if err != nil {
+		return err
+	}
+	if err = account.RetrieveHyperlinks(); err != nil {
+		return err
+	}
+	vehicles, err := account.GetVehicles()
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Cars associated to Volvo Account(%s):\n", account.Username)
+	fmt.Println("-----------------------------------" + strings.Repeat("-", len(account.Username)))
+	for _, vehicle := range vehicles {
+		if err = vehicle.RetrieveHyperlinks(); err != nil {
+			return err
+		}
+		fmt.Printf("  * %s (%s)\n", vehicle.VehicleID, vehicle.Attributes.RegistrationNumber)
+	}
+
+	return nil
+}
 
 func actionRegister(c *cli.Context) error {
 	homeDirPath, err := os.UserHomeDir()

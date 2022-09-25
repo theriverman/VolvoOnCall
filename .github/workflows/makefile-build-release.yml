@@ -19,21 +19,24 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.17  # consider setting this to your minimum supported go version
+        go-version: 1.18  # consider setting this to your minimum supported go version
 
-    - name: Build the binary output for all supported targets
-      run: make build-all
+    - name: Try building the driver packages (no binary will be produced)
+      run: go build
+
+    - name: Build the CLI packages
+      run: make -C ./cli build-all
 
     - name: GH Release Artefacts
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
-          ./dist/voc-darwin-amd64
-          ./dist/voc-darwin-arm64
-          ./dist/voc-linux-386
-          ./dist/voc-linux-amd64
-          ./dist/voc-linux-arm
-          ./dist/voc-linux-arm64
-          ./dist/voc-windows-386.exe
-          ./dist/voc-windows-amd64.exe
+          ./cli/dist/voc-darwin-amd64
+          ./cli/dist/voc-darwin-arm64
+          ./cli/dist/voc-linux-386
+          ./cli/dist/voc-linux-amd64
+          ./cli/dist/voc-linux-arm
+          ./cli/dist/voc-linux-arm64
+          ./cli/dist/voc-windows-386.exe
+          ./cli/dist/voc-windows-amd64.exe

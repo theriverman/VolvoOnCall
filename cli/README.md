@@ -11,13 +11,20 @@ Alternatively, you can install it from source by executing the following command
 go install github.com/theriverman/VolvoOnCall/cli
 ```
 
-# Usage
+# Configuration File
 Interaction can be simplified by adding your credentials and optionally your default car's VIN to a configuration file at `$HOME/.voc.conf`:
 ```ini
 username: my-volvo-username
 password: my-secret-passowrd
-myCarVin: YV1ABCD00E1234567
+defaultCarVin: YV1ABCD00E1234567
+# region: your-custom-region
+# url: your-custom-api-url
 ```
+
+Additionally, the used region and url can be modified too. Possible regions are the following:
+- "" (e.g. nothing which is the default value)
+- na
+- cn
 
 # Building the Project
 The recommended approach to building the project is using [Make](https://en.wikipedia.org/wiki/Make_(software)).

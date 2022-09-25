@@ -42,7 +42,7 @@ func (c *Configuration) LoadFromFile(path string) (err error) {
 			c.Region = tuple[1]
 		case tuple[0] == "url":
 			c.URL = tuple[1]
-		case tuple[0] == "myCarVin":
+		case tuple[0] == "defaultCarVin":
 			c.MyCarVIN = strings.TrimSpace(tuple[1])
 		default:
 			fmt.Println("invalid case:", tuple[1])

@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 
 	vocdriver "github.com/theriverman/VolvoOnCall"
 	"github.com/urfave/cli/v2"
@@ -31,10 +30,6 @@ var appVerboseMode bool = false
 
 // runtime values
 var selectedVin string = ""
-
-// demo values for the template
-// Refer to the documentation of urfave/cli at https://github.com/urfave/cli
-// var username, password string
 
 // NewApplication is the primary entrypoint to our CLI application. the base logic shall be implemented here
 func NewApplication() *cli.App {
@@ -83,10 +78,6 @@ func NewApplication() *cli.App {
 				ServiceRegion: Config.Region,
 				BaseURL:       Config.URL,
 			}
-			// if username == "" || password == "" {
-			// 	username = Config.Username
-			// 	password = Config.Password
-			// }
 			if err = client.Initialise(); err != nil {
 				return err
 			}
@@ -95,32 +86,9 @@ func NewApplication() *cli.App {
 		},
 		Commands: []*cli.Command{
 			{
-				Name:  "cars",
-				Usage: "List all cars associated with your Volvo On Call account",
-				Action: func(c *cli.Context) error {
-					account, err := client.CustomerAccount.GetAccount()
-					if err != nil {
-						return err
-					}
-					if err = account.RetrieveHyperlinks(); err != nil {
-						return err
-					}
-					vehicles, err := account.GetVehicles()
-					if err != nil {
-						return err
-					}
-
-					fmt.Printf("Cars associated to Volvo Account(%s):\n", account.Username)
-					fmt.Println("-----------------------------------" + strings.Repeat("-", len(account.Username)))
-					for _, vehicle := range vehicles {
-						if err = vehicle.RetrieveHyperlinks(); err != nil {
-							return err
-						}
-						fmt.Printf("  * %s (%s)\n", vehicle.VehicleID, vehicle.Attributes.RegistrationNumber)
-					}
-
-					return nil
-				},
+				Name:   "cars",
+				Usage:  "List all cars associated with your Volvo On Call account",
+				Action: actionCars,
 			},
 			// lock/unlock
 			{

@@ -122,7 +122,11 @@ func newRawRequest(requestType string, c *Client, responseBody interface{}, url 
 	}
 
 	// Load Headers
-	c.loadHeaders(request)
+	for key, values := range *c.Headers {
+		for _, value := range values {
+			request.Header.Add(key, value)
+		}
+	}
 
 	// Execute request
 	resp, err := c.HTTPClient.Do(request)

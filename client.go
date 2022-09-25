@@ -56,11 +56,13 @@ func (c *Client) Initialise() error {
 	c.Headers.Add("X-OS-Type", "Android")
 	c.Headers.Add("X-OS-Version", "22")
 
-	// check baseUrl
-	if c.BaseURL == "" {
+	switch {
+	case c.BaseURL == "" && c.ServiceRegion == "":
 		c.apiUrl = fmt.Sprintf(BaseUrl, c.ServiceRegion)
-	} else {
-		c.apiUrl = fmt.Sprintf(c.BaseURL, c.ServiceRegion)
+	case c.BaseURL == "" && c.ServiceRegion != "":
+		c.apiUrl = fmt.Sprintf(c.BaseURL, "-"+c.ServiceRegion)
+	case c.BaseURL != "":
+		c.apiUrl = c.BaseURL // ServiceRegion must be defined as part of the BaseUrl
 	}
 
 	// Bootstrapping Services
@@ -72,14 +74,6 @@ func (c *Client) Initialise() error {
 	return nil
 }
 
-func (c *Client) loadHeaders(request *http.Request) {
-	for key, values := range *c.Headers {
-		for _, value := range values {
-			request.Header.Add(key, value)
-		}
-	}
-}
-
 // LoadExternalHeaders loads a map of header key/value pairs permemently into `Client.Headers`
 func (c *Client) LoadExternalHeaders(headers map[string]string) {
 	for k, v := range headers {
@@ -87,6 +81,7 @@ func (c *Client) LoadExternalHeaders(headers map[string]string) {
 	}
 }
 
+// Authenticate encodes username+password using base64 and adds the resulting string to default Headers
 func (c *Client) Authenticate(username, password string) {
 	c.Headers.Add("Authorization", "Basic "+basicAuth(username, password))
 }
@@ -114,8 +109,3 @@ func basicAuth(username, password string) string {
 	auth := username + ":" + password
 	return base64.StdEncoding.EncodeToString([]byte(auth))
 }
-
-// func redirectPolicyFunc(req *http.Request, via []*http.Request) error {
-// 	req.Header.Add("Authorization", "Basic "+basicAuth("username1", "password123"))
-// 	return nil
-// }
