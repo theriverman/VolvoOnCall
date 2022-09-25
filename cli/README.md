@@ -27,7 +27,7 @@ Additionally, the used region and url can be modified too. Possible regions are 
 - cn
 
 # Commands
-This section describes the commands available in VolvoOnCall CLI. Each subsection explains a top-level command. See also the results of `./voc --help` or just execute `./voc` without any commands.
+This section describes the commands available in VolvoOnCall CLI. Each subsection explains a top-level command. See also the results of `voc --help` or just execute `voc` without any commands.
 
 ## cars
 Lists all cars associated with your account. No additional options.
@@ -38,7 +38,7 @@ Locks the car identified by its VIN.
 
 Example:
 ```bash
-./voc lock --vin YV12ABC3456789
+voc lock --vin YV12ABC3456789
 ```
 
 ## unlock
@@ -47,7 +47,7 @@ Unlocks the car identified by its VIN.
 
 Example:
 ```bash
-./voc unlock --vin YV12ABC3456789
+voc unlock --vin YV12ABC3456789
 ```
 
 ## heater
@@ -58,8 +58,8 @@ Start or stop the heater in the car identified by its VIN.
 
 Example:
 ```bash
-./voc heater --vin YV12ABC3456789 start
-./voc heater --vin YV12ABC3456789 stop
+voc heater --vin YV12ABC3456789 start
+voc heater --vin YV12ABC3456789 stop
 ```
 
 ## engine
@@ -70,8 +70,8 @@ Start or stop the engine in the car identified by its VIN.
 
 Example:
 ```bash
-./voc engine --vin YV12ABC3456789 start
-./voc engine --vin YV12ABC3456789 stop
+voc engine --vin YV12ABC3456789 start
+voc engine --vin YV12ABC3456789 stop
 ```
 
 # blink
@@ -80,7 +80,7 @@ Flash the turn signals on the car identified by its VIN.
 
 Example:
 ```bash
-./voc blink --vin YV12ABC3456789
+voc blink --vin YV12ABC3456789
 ```
 
 # honk
@@ -89,7 +89,7 @@ Honk the horn on the car identified by its VIN.
 
 Example:
 ```bash
-./voc honk --vin YV12ABC3456789
+voc honk --vin YV12ABC3456789
 ```
 
 # status
@@ -106,10 +106,10 @@ Examples:
 voc status -vin YV12ABC3456789
 
 # Returns the original JSON
-./voc status -vin YV12ABC3456789 --json
+voc status -vin YV12ABC3456789 --json
 
 # Returns only select attributes
-./voc status -vin YV12ABC3456789 --attributes windows.frontLeftWindowOpen,averageFuelConsumption,averageSpeed
+voc status -vin YV12ABC3456789 --attributes windows.frontLeftWindowOpen,averageFuelConsumption,averageSpeed
 ```
 For more advanced query options, see the Path Syntax at [https://github.com/tidwall/gjson](https://github.com/tidwall/gjson).
 
@@ -117,8 +117,8 @@ For more advanced query options, see the Path Syntax at [https://github.com/tidw
 
 Examples:
 ```bash
-./voc trips -vin YV12ABC3456789
-./voc trips -vin YV12ABC3456789 --json
+voc trips -vin YV12ABC3456789
+voc trips -vin YV12ABC3456789 --json
 ```
 
 # register
@@ -126,7 +126,7 @@ Save your VolvoOnCall username and password in $HOME/.voc.conf
 
 Example:
 ```bash
-./voc register --username "my-volvo-username" --password "my-volvo-password"
+voc register --username "my-volvo-username" --password "my-volvo-password"
 ```
 
 # Building the Project
