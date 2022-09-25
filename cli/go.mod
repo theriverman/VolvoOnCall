@@ -3,9 +3,9 @@ module github.com/theriverman/VolvoOnCall/cli
 go 1.19
 
 require (
-	github.com/theriverman/VolvoOnCall v0.0.0-00010101000000-000000000000
+	github.com/theriverman/VolvoOnCall v0.0.0-20220925184912-3a68114c366b
 	github.com/tidwall/gjson v1.14.3
-	github.com/urfave/cli/v2 v2.16.0
+	github.com/urfave/cli/v2 v2.16.3
 	golang.org/x/text v0.3.7
 )
 
