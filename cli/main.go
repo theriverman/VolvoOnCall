@@ -92,6 +92,28 @@ func NewApplication() *cli.App {
 				Usage:  "List all cars associated with your Volvo On Call account",
 				Action: actionCars,
 			},
+
+			// attributes
+			{
+				Name:   "attributes",
+				Usage:  "Get all attributes of a select car",
+				Action: actionAttributes,
+				Before: selectVinOrThrowError,
+				Flags: append(commonFlagsVin(), []cli.Flag{
+					&cli.BoolFlag{
+						Name:        "json",
+						Usage:       "Return raw JSON response",
+						Value:       false,
+						Destination: &asJson,
+					},
+					&cli.StringSliceFlag{
+						Name:        "attributes",
+						Usage:       "Comma-separated JSON parameters to return",
+						Destination: customAttributes,
+					},
+				}...),
+			},
+
 			// lock/unlock
 			{
 				Name:   "lock",

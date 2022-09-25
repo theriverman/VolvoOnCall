@@ -10,8 +10,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"strings"
+	"text/tabwriter"
+	"unicode"
 
 	"github.com/tidwall/gjson"
 	"github.com/urfave/cli/v2"
@@ -51,6 +54,49 @@ func actionRegister(c *cli.Context) error {
 	}
 	defaultConfPath := filepath.Join(homeDirPath, ".voc.conf")
 	return Config.WriteToFile(defaultConfPath)
+}
+
+func actionAttributes(c *cli.Context) error {
+	vehicle, err := client.Vehicles.GetVehicleByVIN(selectedVin)
+	if err != nil {
+		return err
+	}
+	if asJson {
+		s, err := json.MarshalIndent(vehicle.Attributes, "", "\t")
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(s))
+		return nil
+	}
+	// for more advanced query options, see the Path Syntax at https://github.com/tidwall/gjson
+	if len(customAttributes.Value()) > 0 {
+		s, err := json.MarshalIndent(vehicle.Attributes, "", "\t")
+		if err != nil {
+			return err
+		}
+		for _, v := range customAttributes.Value() {
+			fmt.Printf("%s: %s\n", v, gjson.GetBytes(s, v).String())
+		}
+		return nil
+	}
+
+	// default mode - print all attributes
+	w := new(tabwriter.Writer)
+	w.Init(os.Stdout, 8, 8, 0, '\t', 0)
+	defer w.Flush()
+	fmt.Fprintf(w, "\n %s\t%s\t", "Car Attribute", "Attribute Value")
+	fmt.Fprintf(w, "\n %s\t%s\t", "----", "----")
+	fmt.Fprintf(w, "\n")
+	v := reflect.ValueOf(*vehicle.Attributes)
+	typeOfS := v.Type()
+	for i := 0; i < v.NumField(); i++ {
+		if unicode.IsLower(rune(typeOfS.Field(i).Name[0])) {
+			continue
+		}
+		fmt.Fprintf(w, "%s:\t %v\n", typeOfS.Field(i).Name, v.Field(i).Interface())
+	}
+	return nil
 }
 
 func actionStatus(c *cli.Context) error {
