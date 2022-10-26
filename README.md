@@ -17,7 +17,7 @@ import (
   vocdriver "github.com/theriverman/VolvoOnCall"
 )
 
-client, err := NewClient("your-volvo-on-call-username", "your password")
+client, err := vocdriver.NewClient("your-volvo-on-call-username", "your password")
 if err != nil {
   fmt.Printf("%v\n", err)
 }
