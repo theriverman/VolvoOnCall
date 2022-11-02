@@ -194,6 +194,22 @@ func NewApplication() *cli.App {
 				Action: actionHonk,
 			},
 
+			// position
+			{
+				Name:   "position",
+				Usage:  "Get the car's last known position",
+				Action: actionPosition,
+				Before: selectVinOrThrowError,
+				Flags: append(commonFlagsVin(), []cli.Flag{
+					&cli.BoolFlag{
+						Name:        "json",
+						Usage:       "Return raw JSON response",
+						Value:       false,
+						Destination: &asJson,
+					},
+				}...),
+			},
+
 			// status
 			{
 				Name:   "status",
@@ -234,7 +250,9 @@ func NewApplication() *cli.App {
 
 			// call (method)
 
-			// mgtt
+			// mqtt
+
+			// register
 			{
 				Name:   "register",
 				Usage:  fmt.Sprintf("Save your %s username and password in $HOME/.voc.conf", AppName),

@@ -99,6 +99,45 @@ func actionAttributes(c *cli.Context) error {
 	return nil
 }
 
+func actionPosition(c *cli.Context) error {
+	pos, err := client.Vehicles.GetVehiclePositionByVIN(selectedVin)
+	if err != nil {
+		return err
+	}
+	if asJson {
+		s, err := json.MarshalIndent(pos, "", "\t")
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(s))
+		return nil
+	}
+
+	// POSITION
+	fmt.Println("Position")
+	fmt.Printf("  - Longitude:\t%.15f\n", pos.Position.Longitude)
+	fmt.Printf("  - Latitude:\t%.15f\n", pos.Position.Latitude)
+	fmt.Printf("  - Timestamp:\t%s\n", pos.Position.Timestamp)
+	// fmt.Printf("  - Speed:\t%s\n", (pos.Position.Speed))   // TODO: enable when actual type is known
+	// fmt.Printf("  - Heading:\t%s\n", pos.Position.Heading) // TODO: enable when actual type is known
+	fmt.Printf("  - Maps URL:\thttps://www.google.com/maps/place/%.15f,%.15f\n", pos.Position.Latitude, pos.Position.Longitude)
+
+	// CALCULATED POSITION
+	if pos.CalculatedPosition.Longitude > 1.0 {
+		fmt.Println("\nCalculated Position")
+		fmt.Printf("  - Longitude:\t%.15f\n", pos.CalculatedPosition.Longitude)
+		fmt.Printf("  - Latitude:\t%.15f\n", pos.CalculatedPosition.Latitude)
+		fmt.Printf("  - Timestamp:\t%s\n", pos.CalculatedPosition.Timestamp)
+		// fmt.Printf("  - Speed:\t%s\n", pos.CalculatedPosition.Speed)     // TODO: enable when actual type is known
+		// fmt.Printf("  - Heading:\t%s\n", pos.CalculatedPosition.Heading) // TODO: enable when actual type is known
+		fmt.Printf("  - Maps URL:\thttps://www.google.com/maps/place/%.15f,%.15f\n", pos.CalculatedPosition.Latitude, pos.CalculatedPosition.Longitude)
+	} else {
+		fmt.Println("\nCalculated Position is not available")
+	}
+
+	return nil
+}
+
 func actionStatus(c *cli.Context) error {
 	vehicle, err := client.Vehicles.GetVehicleByVIN(selectedVin)
 	if err != nil {
@@ -151,7 +190,7 @@ func actionStatus(c *cli.Context) error {
 	fmt.Printf("Engine Running:\t\t\t%t\n", vehicle.Status.EngineRunning)
 	fmt.Printf("Fuel Amount [l]:\t\t%d l\n", vehicle.Status.FuelAmount)
 	fmt.Printf("Fuel Amount [%%]:\t\t%d%%\n", vehicle.Status.FuelAmountLevel)
-	return nil
+	return actionPosition(c)
 }
 
 func actionTrips(c *cli.Context) error {
