@@ -669,12 +669,12 @@ type VehicleTrips struct {
 			} `json:"boundingBox"`
 		} `json:"routeDetails,omitempty"`
 		TripDetails []struct {
-			FuelConsumption        int    `json:"fuelConsumption"`
-			ElectricalConsumption  int    `json:"electricalConsumption"`
-			ElectricalRegeneration int    `json:"electricalRegeneration"`
-			Distance               int    `json:"distance"`
-			StartOdometer          int    `json:"startOdometer"`
-			StartTime              string `json:"startTime"`
+			FuelConsumption        float64 `json:"fuelConsumption"`
+			ElectricalConsumption  float64 `json:"electricalConsumption"`
+			ElectricalRegeneration float64 `json:"electricalRegeneration"`
+			Distance               float64 `json:"distance"`
+			StartOdometer          int     `json:"startOdometer"`
+			StartTime              string  `json:"startTime"`
 			StartPosition          struct {
 				Longitude       float64 `json:"longitude"`
 				Latitude        float64 `json:"latitude"`
