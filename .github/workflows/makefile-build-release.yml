@@ -24,6 +24,12 @@ jobs:
     - name: Try building the driver packages (no binary will be produced)
       run: go build
 
+    - name: Append a replace directive to go.mod to always use the latest VoC driver
+      run: echo "replace github.com/theriverman/VolvoOnCall => ../" >> ./voc/go.mod
+
+    - name: Verify the contents of ./voc/go.mod
+      run: cat ./voc/go.mod
+
     - name: Build the CLI packages
       run: make -C ./voc build-all
 
