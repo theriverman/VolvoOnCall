@@ -58,19 +58,16 @@ build-darwin:
 	@GOOS=darwin GOARCH=arm64 go build $(GO_LD_FLAGS) -o dist/$(BINARY_NAME)-darwin-arm64
 
 build-linux:
-	@GOOS=linux GOARCH=386 go build $(GO_LD_FLAGS) -o dist/$(BINARY_NAME)-linux-386
+#	@GOOS=linux GOARCH=386 go build $(GO_LD_FLAGS) -o dist/$(BINARY_NAME)-linux-386
 	@GOOS=linux GOARCH=amd64 go build $(GO_LD_FLAGS) -o dist/$(BINARY_NAME)-linux-amd64
 	@GOOS=linux GOARCH=arm go build $(GO_LD_FLAGS) -o dist/$(BINARY_NAME)-linux-arm
 	@GOOS=linux GOARCH=arm64 go build $(GO_LD_FLAGS) -o dist/$(BINARY_NAME)-linux-arm64
 
 build-windows: generate-win-versioninfo
-	@GOOS=windows GOARCH=386 go build $(GO_LD_FLAGS) -o dist/$(BINARY_NAME)-windows-386.exe
+#	@GOOS=windows GOARCH=386 go build $(GO_LD_FLAGS) -o dist/$(BINARY_NAME)-windows-386.exe
 	@GOOS=windows GOARCH=amd64 go build $(GO_LD_FLAGS) -o dist/$(BINARY_NAME)-windows-amd64.exe
 
-build-enterprise-linux:
-	@GOOS=linux GOARCH=amd64 go build $(GO_LD_FLAGS) --tags enterprise -o dist/$(BINARY_NAME).enterprise-linux-amd64
-
-build-all: clean build-darwin build-linux build-windows build-enterprise-linux
+build-all: clean build-darwin build-linux build-windows
 
 install:
 	@echo "Building for host system: $(shell go env GOOS)/$(shell go env GOARCH)"
