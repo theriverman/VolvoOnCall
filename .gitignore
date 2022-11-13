@@ -18,3 +18,4 @@ resource*.syso
 # vendor/
 .env
 /voc/.env
+oryxBuildBinary

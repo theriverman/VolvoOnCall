@@ -3,7 +3,7 @@ module github.com/theriverman/VolvoOnCall/voc
 go 1.19
 
 require (
-	github.com/theriverman/VolvoOnCall v0.0.0-20220925184912-3a68114c366b
+	github.com/theriverman/VolvoOnCall v0.0.0-20221106210220-4bc1838e4b9b
 	github.com/tidwall/gjson v1.14.3
 	github.com/urfave/cli/v2 v2.16.3
 	golang.org/x/text v0.3.7

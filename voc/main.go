@@ -177,6 +177,26 @@ func NewApplication() *cli.App {
 				},
 			},
 
+			// preclimatization
+			{
+				Name:   "preclimatization",
+				Usage:  "Start/Stop preclimatization",
+				Flags:  commonFlagsVin(),
+				Before: selectVinOrThrowError,
+				Subcommands: []*cli.Command{
+					{
+						Name:   "start",
+						Usage:  "Start preclimatization",
+						Action: actionStartPreclimatization,
+					},
+					{
+						Name:   "stop",
+						Usage:  "Stop  preclimatization",
+						Action: actionStopPreclimatization,
+					},
+				},
+			},
+
 			// honk and blink
 			{
 				Name:   "blink",

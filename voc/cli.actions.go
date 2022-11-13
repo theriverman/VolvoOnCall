@@ -284,6 +284,22 @@ func actionStopEngine(c *cli.Context) error {
 	return client.Vehicles.EvaluateServiceStatusAuto(status)
 }
 
+func actionStartPreclimatization(c *cli.Context) error {
+	status, err := client.Vehicles.StartPreclimatization(selectedVin)
+	if err != nil {
+		return err
+	}
+	return client.Vehicles.EvaluateServiceStatusAuto(status)
+}
+
+func actionStopPreclimatization(c *cli.Context) error {
+	status, err := client.Vehicles.StopPreclimatization(selectedVin)
+	if err != nil {
+		return err
+	}
+	return client.Vehicles.EvaluateServiceStatusAuto(status)
+}
+
 func actionBlink(c *cli.Context) error {
 	status, err := client.Vehicles.BlinkLights(selectedVin, nil)
 	if err != nil {
