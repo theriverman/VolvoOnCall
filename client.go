@@ -7,6 +7,17 @@ import (
 	"strings"
 )
 
+/*
+Possible ServiceRegion options:
+- Africa
+- Asian (except China Mainland)
+- China Mainland
+- Europe [default]
+- North America
+- Oceania
+- South America
+*/
+
 const BaseUrl string = "https://vocapi%s.wirelesscar.net/customerapi/rest/v3.0"
 
 func NewClient(username, password string) (*Client, error) {
