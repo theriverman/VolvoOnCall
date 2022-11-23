@@ -311,7 +311,57 @@ func (v *VehiclesService) StopPreclimatization(vin string) (status *VehicleServi
 	return
 }
 
-// Utils
+/*
+Charge Locations
+*/
+func (v *VehiclesService) GetChargingLocations(vin string) (chargingLocations *ChargingLocations, err error) {
+	if vin == "" {
+		return nil, fmt.Errorf("vin must not be empty")
+	}
+	url := v.client.MakeURL(v.Endpoint, vin, "chargeLocations")
+	if _, err = v.client.Request.Get(url, &chargingLocations); err != nil {
+		return nil, err
+	}
+	chargingLocations.client = v.client
+	for i := 0; i < len(chargingLocations.ChargingLocations); i++ {
+		chargingLocations.ChargingLocations[i].client = v.client
+	}
+	return
+}
+
+func (v *VehiclesService) GetChargingLocation(vin, chargingId string) (chargingLocation *ChargingLocation, err error) {
+	if vin == "" {
+		return nil, fmt.Errorf("vin must not be empty")
+	}
+	if chargingId == "" {
+		return nil, fmt.Errorf("chargingId must not be empty")
+	}
+	url := v.client.MakeURL(v.Endpoint, vin, "chargeLocations", chargingId)
+	if _, err = v.client.Request.Get(url, &chargingLocation); err != nil {
+		return nil, err
+	}
+	chargingLocation.client = v.client
+	return
+}
+
+func (v *VehiclesService) UpdateChargingLocation(vin, chargingId string, chargingLocation *ChargingLocation) (chargingLocationResponse *ChargingLocation, err error) {
+	if vin == "" {
+		return nil, fmt.Errorf("vin must not be empty")
+	}
+	if chargingId == "" {
+		return nil, fmt.Errorf("chargingId must not be empty")
+	}
+	url := v.client.MakeURL(v.Endpoint, vin, "chargeLocations", chargingId)
+	if _, err = v.client.Request.Put(url, &chargingLocation, &chargingLocationResponse); err != nil {
+		return nil, err
+	}
+	chargingLocationResponse.client = v.client
+	return
+}
+
+/*
+	Utils
+*/
 
 func (v *VehiclesService) RetrieveServiceStatus(vin, customerServiceId string) (status *VehicleServiceStatus, err error) {
 	if vin == "" || customerServiceId == "" {
@@ -424,6 +474,14 @@ func (v Vehicle) StopHeater() (status *VehicleServiceStatus, err error) {
 	default:
 		return nil, fmt.Errorf("heater is not supported by %s [%s]", v.Attributes.RegistrationNumber, v.Attributes.Vin)
 	}
+}
+
+func (v Vehicle) SetDelayCharging(chargingId string, delayCharging *DelayCharging) (chargingLocation *ChargingLocation, err error) {
+	cl := ChargingLocation{
+		Status:        "Accepted",
+		DelayCharging: delayCharging,
+	}
+	return v.client.Vehicles.UpdateChargingLocation(v.VehicleID, chargingId, &cl)
 }
 
 /*
