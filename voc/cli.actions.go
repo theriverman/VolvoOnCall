@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"reflect"
 	"runtime"
@@ -16,6 +17,7 @@ import (
 	"text/tabwriter"
 	"unicode"
 
+	vocdriver "github.com/theriverman/VolvoOnCall"
 	"github.com/tidwall/gjson"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/text/language"
@@ -314,6 +316,148 @@ func actionHonk(c *cli.Context) error {
 		return err
 	}
 	return client.Vehicles.EvaluateServiceStatusAuto(status)
+}
+
+func actionListChargingLocations(c *cli.Context) error {
+	chargingLocations, err := client.Vehicles.GetChargingLocations(selectedVin)
+	if err != nil {
+		return err
+	}
+	for _, cl := range chargingLocations.ChargingLocations {
+		fmt.Printf("Name: %s\n", cl.Name)
+		fmt.Printf("  ID: %s\n", path.Base(cl.ChargeLocation))
+		fmt.Printf("  Status: %s\n", cl.Status)
+		fmt.Printf("  Plug in reminder enabled: %t\n", cl.PlugInReminderEnabled)
+		fmt.Printf("  Vehicle is at charging location: %t\n", cl.VehicleAtChargingLocation)
+		fmt.Printf("  Position:\n")
+		fmt.Printf("    - Street Address:\t%s\n", cl.Position.StreetAddress)
+		fmt.Printf("    - City:\t\t%s\n", cl.Position.City)
+		fmt.Printf("    - Postal Code:\t%s\n", cl.Position.PostalCode)
+		fmt.Printf("    - Region:\t\t%s\n", cl.Position.Region)
+		fmt.Printf("    - Country Code:\t%s\n", cl.Position.ISO2CountryCode)
+		fmt.Printf("    - Longitude:\t%.15f\n", cl.Position.Longitude)
+		fmt.Printf("    - Latitude:\t\t%.15f\n", cl.Position.Latitude)
+		fmt.Printf("    - Maps URL:\t\thttps://www.google.com/maps/place/%.15f,%.15f\n", cl.Position.Latitude, cl.Position.Longitude)
+		fmt.Printf("---------------------------------------------------------------------------------------\n\n")
+	}
+	return nil
+}
+
+func actionGetChargingLocationById(c *cli.Context) error {
+	if c.Args().Len() == 0 {
+		return fmt.Errorf("you must provide a charging location id. see --help for more details")
+	}
+	cl, err := client.Vehicles.GetChargingLocation(selectedVin, c.Args().First())
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Name: %s\n", cl.Name)
+	fmt.Printf("  ID: %s\n", path.Base(cl.ChargeLocation))
+	fmt.Printf("  Status: %s\n", cl.Status)
+	fmt.Printf("  Plug in reminder enabled: %t\n", cl.PlugInReminderEnabled)
+	fmt.Printf("  Vehicle is at charging location: %t\n", cl.VehicleAtChargingLocation)
+	fmt.Printf("  Position:\n")
+	fmt.Printf("    - Street Address:\t%s\n", cl.Position.StreetAddress)
+	fmt.Printf("    - City:\t\t%s\n", cl.Position.City)
+	fmt.Printf("    - Postal Code:\t%s\n", cl.Position.PostalCode)
+	fmt.Printf("    - Region:\t\t%s\n", cl.Position.Region)
+	fmt.Printf("    - Country Code:\t%s\n", cl.Position.ISO2CountryCode)
+	fmt.Printf("    - Longitude:\t%.15f\n", cl.Position.Longitude)
+	fmt.Printf("    - Latitude:\t\t%.15f\n", cl.Position.Latitude)
+	fmt.Printf("    - Maps URL:\t\thttps://www.google.com/maps/place/%.15f,%.15f\n", cl.Position.Latitude, cl.Position.Longitude)
+	fmt.Printf("  ---------------------------------------------------------------------------------------------\n\n")
+	return nil
+}
+
+func actionEnableDelayCharging(c *cli.Context) error {
+	var (
+		chargingId, startTime, stopTime string
+	)
+	dc := vocdriver.DelayCharging{
+		Enabled: true,
+	}
+	switch c.Args().Len() {
+	case 0:
+		return fmt.Errorf("you must provide a charging location id. see --help for more details")
+	case 1:
+		chargingId = c.Args().First()
+		cl, err := client.Vehicles.GetChargingLocation(selectedVin, chargingId)
+		if err != nil {
+			return err
+		}
+		dc.StartTime = cl.DelayCharging.StartTime
+		dc.StopTime = cl.DelayCharging.StopTime
+	case 2:
+		return fmt.Errorf("unexpected number of arguments were passed. minimum 1 or exactly 3 allowed")
+	case 3:
+		chargingId = c.Args().First()
+		startTime = c.Args().Get(1)
+		stopTime = c.Args().Get(2)
+		dc.StartTime = startTime
+		dc.StopTime = stopTime
+	default:
+		return fmt.Errorf("unexpected number of arguments were passed. minimum 1 or exactly 3 allowed")
+	}
+
+	vehicle, err := client.Vehicles.GetVehicleByVIN(selectedVin)
+	if err != nil {
+		return err
+	}
+
+	if _, err = vehicle.SetDelayCharging(chargingId, &dc); err != nil {
+		return err
+	}
+	return nil
+}
+
+func actionDisableDelayCharging(c *cli.Context) error {
+	if c.Args().Len() == 0 {
+		return fmt.Errorf("you must provide a charging location id. see --help for more details")
+	}
+	dc := vocdriver.DelayCharging{
+		Enabled: false,
+	}
+	vehicle, err := client.Vehicles.GetVehicleByVIN(selectedVin)
+	if err != nil {
+		return err
+	}
+	if _, err = vehicle.SetDelayCharging(c.Args().First(), &dc); err != nil {
+		return err
+	}
+	return nil
+}
+
+func actionUpdateDelayCharging(c *cli.Context) error {
+	var (
+		chargingId, startTime, stopTime string
+	)
+	dc := vocdriver.DelayCharging{}
+	switch c.Args().Len() {
+	case 3:
+		chargingId = c.Args().First()
+		startTime = c.Args().Get(1)
+		stopTime = c.Args().Get(2)
+
+		cl, err := client.Vehicles.GetChargingLocation(selectedVin, chargingId)
+		if err != nil {
+			return err
+		}
+		dc.Enabled = cl.DelayCharging.Enabled // keep current status
+		dc.StartTime = startTime
+		dc.StopTime = stopTime
+	default:
+		return fmt.Errorf("you must provide: charging location id + start time + stop time. see --help for more details")
+	}
+
+	vehicle, err := client.Vehicles.GetVehicleByVIN(selectedVin)
+	if err != nil {
+		return err
+	}
+
+	if _, err = vehicle.SetDelayCharging(chargingId, &dc); err != nil {
+		return err
+	}
+	return nil
 }
 
 func actionVersion(c *cli.Context) error {

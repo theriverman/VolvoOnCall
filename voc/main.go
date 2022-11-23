@@ -294,6 +294,52 @@ func NewApplication() *cli.App {
 					},
 				},
 			},
+			// charging locations
+			{
+				Name:   "charging",
+				Usage:  "View/Change charging locations",
+				Flags:  commonFlagsVin(),
+				Before: selectVinOrThrowError,
+				Subcommands: []*cli.Command{
+					{
+						Name:   "list",
+						Usage:  "List charging locations",
+						Action: actionListChargingLocations,
+					},
+					{
+						Name:      "get",
+						Usage:     "Get a charging location by its ID",
+						Action:    actionGetChargingLocationById,
+						UsageText: "Pass a charging location's ID to get its details. Use the list command to find charging locations",
+					},
+					{
+						Name:  "delay",
+						Usage: "Enable/Disable delay charging and optionally update start/stop times",
+						Subcommands: []*cli.Command{
+							{
+								Name:      "enable",
+								Usage:     "Enable charging delay for a charging location",
+								Action:    actionEnableDelayCharging,
+								UsageText: "Pass a charging location's ID after the `enable` command. You can also pass a StartTime and a StopTime\nExample #1: voc charging delay enable 4075649\nExample #2: voc charging delay enable 4075649 22:35 06:50",
+							},
+							{
+								Name:      "disable",
+								Usage:     "Disable charging delay for a charging location",
+								Action:    actionDisableDelayCharging,
+								UsageText: "Pass a charging location's ID after the `disable` command\nFor example: voc charging delay disable 4075649",
+							},
+							{
+								Name:      "update",
+								Usage:     "Update both start time and stop time for a charging location",
+								Action:    actionUpdateDelayCharging,
+								UsageText: "Pass a charging location's ID after the `update` command along with a StartTime and a StopTime\nFor example: voc charging delay update 4075649 22:35 06:50",
+							},
+						},
+					},
+				},
+			},
+
+			// VOC version
 			{
 				Name:   "version",
 				Usage:  fmt.Sprintf("Show the %s version information (detailed)", AppName),

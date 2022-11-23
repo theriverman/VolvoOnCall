@@ -16,3 +16,5 @@ require (
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 )
+
+replace github.com/theriverman/VolvoOnCall => ../
