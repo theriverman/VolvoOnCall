@@ -3,7 +3,7 @@ module github.com/theriverman/VolvoOnCall/voc
 go 1.19
 
 require (
-	github.com/theriverman/VolvoOnCall v0.0.0-20221106210220-4bc1838e4b9b
+	github.com/theriverman/VolvoOnCall v0.0.0-20221123212349-d789498f0943
 	github.com/tidwall/gjson v1.14.3
 	github.com/urfave/cli/v2 v2.16.3
 	golang.org/x/text v0.3.7
@@ -16,5 +16,3 @@ require (
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 )
-
-replace github.com/theriverman/VolvoOnCall => ../
