@@ -6,7 +6,7 @@ require (
 	github.com/theriverman/VolvoOnCall v0.0.0-20221123212349-d789498f0943
 	github.com/tidwall/gjson v1.14.3
 	github.com/urfave/cli/v2 v2.16.3
-	golang.org/x/text v0.3.7
+	golang.org/x/text v0.3.8
 )
 
 require (
